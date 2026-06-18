@@ -9,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
+st.markdown(table_html, unsafe_allow_html=True)
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Heebo', sans-serif; direction: rtl; }
