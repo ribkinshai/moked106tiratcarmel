@@ -1,3 +1,4 @@
+import copy
 import pandas as pd
 from typing import List, Dict
 
@@ -20,14 +21,12 @@ REQUIRED_PER_SHIFT = {
     "שבת":    {"בוקר": 2, "ערב": 2, "לילה": 2},
 }
 
-# משמרות קבועות: {שם: {יום: משמרת}}
 FIXED_SHIFTS = {
     "שרית": {"ראשון": "בוקר", "שני": "בוקר", "חמישי": "בוקר"},
-    "ריקי":  {"ראשון": "בוקר", "שני": "בוקר", "חמישי": "בוקר"},
+    "ריקי": {"ראשון": "בוקר", "שני": "בוקר", "חמישי": "בוקר"},
     "אדיר": {"ראשון": "בוקר", "חמישי": "בוקר"},
 }
 
-# אילוצים אישיים: {שם: [(יום, משמרת אסורה)]}
 FORBIDDEN = {
     "טלי":  [("שבת", "לילה"), ("ראשון", "בוקר")],
     "ריקי": [("שבת", "בוקר"), ("שבת", "ערב"), ("שבת", "לילה"),
@@ -36,27 +35,27 @@ FORBIDDEN = {
               ("שישי", "בוקר"), ("שישי", "ערב"), ("שישי", "לילה")],
 }
 
-NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
-DIVERSE_AGENTS = {"שני", "רונית"}  # פיזור מגוון
+NIGHT_LOVERS  = {"לב", "איתי", "גיא", "אלינור"}
+DIVERSE_AGENTS = {"שני", "רונית"}
+
 
 def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: bool = True) -> pd.DataFrame:
-    names  = [a["name"]  for a in agents]
+    names  = [a["name"] for a in agents]
     totals = {a["name"]: a["total"] for a in agents}
 
-    # העתק FORBIDDEN כדי לא לשנות את הגלובלי
-    import copy
     forbidden_local = copy.deepcopy(FORBIDDEN)
 
     if is_fourth_saturday:
         totals["ריקי"] = 4
-        forbidden_local["ריקי"] = [d for d in forbidden_local.get("ריקי", [])
-                                    if d[0] != "שבת"]
+        forbidden_local["ריקי"] = [d for d in forbidden_local.get("ריקי", []) if d[0] != "שבת"]
+
+    # ── אתחול מבני נתונים ──
+    schedule: Dict[str, Dict[str, str]] = {n: {d: "—" for d in DAYS_ORDER} for n in names}
+    assigned_count: Dict[str, int]      = {n: 0 for n in names}
+    shift_type_count: Dict[str, Dict[str, int]] = {n: {"בוקר": 0, "ערב": 0, "לילה": 0} for n in names}
 
     def is_forbidden(name: str, day: str, shift: str) -> bool:
-        for (fd, fs) in forbidden_local.get(name, []):
-            if fd == day and fs == shift:
-                return True
-        return False
+        return any(fd == day and fs == shift for (fd, fs) in forbidden_local.get(name, []))
 
     def can_assign(name: str, day: str, shift: str) -> bool:
         if assigned_count[name] >= totals[name]:
@@ -65,7 +64,6 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
             return False
         if is_forbidden(name, day, shift):
             return False
-        # אסור בוקר אחרי לילה
         day_idx = DAYS_ORDER.index(day)
         if shift == "בוקר" and day_idx > 0:
             prev_day = DAYS_ORDER[day_idx - 1]
@@ -79,18 +77,17 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
         shift_type_count[name][shift] += 1
 
     def diversity_score(name: str, shift: str) -> int:
-        """ציון פיזור – מעדיף משמרות שנציג עשה פחות"""
         return shift_type_count[name][shift]
 
-    # ── שלב 1: שיבוץ משמרות קבועות ──
-    for name, fixed in FIXED_SHIFTS.items():
-        if name not in names:
+    # ── שלב 1: משמרות קבועות ──
+    for agent_name, fixed in FIXED_SHIFTS.items():
+        if agent_name not in names:
             continue
         for day, shift in fixed.items():
-            if can_assign(name, day, shift):
-                assign(name, day, shift)
+            if can_assign(agent_name, day, shift):
+                assign(agent_name, day, shift)
 
-    # ── שלב 2: מילוי לפי דרישות, עדיפויות ופריסה ──
+    # ── שלב 2: מילוי לפי דרישות ──
     priority_days = ["שישי", "שבת"] + ["ראשון", "שני", "שלישי", "רביעי", "חמישי"]
 
     for day in priority_days:
@@ -101,21 +98,13 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
             if needed <= 0:
                 continue
 
-            # בניית רשימת עדיפויות
             if shift == "לילה":
-                primary   = [n for n in names if n in NIGHT_LOVERS]
-                secondary = [n for n in names if n not in NIGHT_LOVERS]
+                primary = [n for n in names if n in NIGHT_LOVERS]
             elif shift == "בוקר":
-                primary   = [n for n in names if n not in NIGHT_LOVERS and n not in DIVERSE_AGENTS]
-                secondary = sorted(DIVERSE_AGENTS & set(names),
-                                   key=lambda n: diversity_score(n, shift))
-                tertiary  = [n for n in names if n in NIGHT_LOVERS]
-                secondary = secondary + tertiary
-            else:  # ערב
-                primary   = [n for n in names if n not in NIGHT_LOVERS]
-                secondary = [n for n in names if n in NIGHT_LOVERS]
+                primary = [n for n in names if n not in NIGHT_LOVERS and n not in DIVERSE_AGENTS]
+            else:
+                primary = [n for n in names if n not in NIGHT_LOVERS]
 
-            # נציגי פיזור – ממוינים לפי מי עשה פחות מהמשמרת הזו
             def sort_key(n):
                 base = 0 if n in primary else 1
                 div  = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
@@ -124,55 +113,49 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
             ordered = sorted(names, key=sort_key)
 
             filled = 0
-            for name in ordered:
+            for agent_name in ordered:
                 if filled >= needed:
                     break
-                if can_assign(name, day, shift):
-                    # פיזור: לא יותר מ-3 מאותו סוג (אלא אם אין ברירה)
-                    if shift_type_count[name][shift] < 3:
-                        assign(name, day, shift)
-                        filled += 1
+                if can_assign(agent_name, day, shift) and shift_type_count[agent_name][shift] < 3:
+                    assign(agent_name, day, shift)
+                    filled += 1
 
-            # אם עדיין חסרים – נרגיש את הגבלת הפיזור
             if filled < needed:
-                for name in ordered:
+                for agent_name in ordered:
                     if filled >= needed:
                         break
-                    if can_assign(name, day, shift):
-                        assign(name, day, shift)
+                    if can_assign(agent_name, day, shift):
+                        assign(agent_name, day, shift)
                         filled += 1
 
     # ── שלב 3: השלמה למכסה ──
-    for name in names:
-        if assigned_count[name] >= totals[name]:
+    for agent_name in names:
+        if assigned_count[agent_name] >= totals[agent_name]:
             continue
-        # ממיין ימים לפי איזון פיזור
         for day in DAYS_ORDER:
-            if assigned_count[name] >= totals[name]:
+            if assigned_count[agent_name] >= totals[agent_name]:
                 break
-            if schedule[name][day] != "—":
+            if schedule[agent_name][day] != "—":
                 continue
-            # סדר משמרות לפי פיזור
-            if name in NIGHT_LOVERS:
-                shift_order = sorted(SHIFTS, key=lambda s: shift_type_count[name][s])
-                shift_order = sorted(shift_order, key=lambda s: 0 if s == "לילה" else 1)
-            elif name in DIVERSE_AGENTS:
-                shift_order = sorted(SHIFTS, key=lambda s: shift_type_count[name][s])
+            if agent_name in DIVERSE_AGENTS:
+                shift_order = sorted(SHIFTS, key=lambda s: shift_type_count[agent_name][s])
+            elif agent_name in NIGHT_LOVERS:
+                shift_order = sorted(SHIFTS, key=lambda s: (0 if s == "לילה" else 1, shift_type_count[agent_name][s]))
             else:
-                shift_order = sorted(SHIFTS, key=lambda s: shift_type_count[name][s])
+                shift_order = sorted(SHIFTS, key=lambda s: shift_type_count[agent_name][s])
 
             for shift in shift_order:
-                if can_assign(name, day, shift):
-                    assign(name, day, shift)
+                if can_assign(agent_name, day, shift):
+                    assign(agent_name, day, shift)
                     break
 
     # ── בניית DataFrame ──
     rows = []
-    for name in names:
-        row = {"שם": name}
+    for agent_name in names:
+        row = {"שם": agent_name}
         for day in DAYS_ORDER:
-            row[day] = schedule[name][day]
-        row["סה״כ"] = assigned_count[name]
+            row[day] = schedule[agent_name][day]
+        row["סה״כ"] = assigned_count[agent_name]
         rows.append(row)
 
     return pd.DataFrame(rows)
