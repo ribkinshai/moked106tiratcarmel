@@ -1,7 +1,12 @@
 import streamlit as st
 import pandas as pd
 from scheduler import generate_schedule
-from scheduler import SHIFT_HOURS
+
+SHIFT_HOURS = {
+    "בוקר": "07:00-15:00",
+    "ערב":  "15:00-23:00",
+    "לילה": "23:00-07:00",
+}
 
 st.set_page_config(
     page_title="סידור עבודה – מוקד 106",
