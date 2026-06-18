@@ -30,6 +30,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Session State ─────────────────────────────────────────────────────────
+if "watcher" not in st.session_state:
+    st.session_state.watcher = {}  # {day_shift: agent_name}
 if "agents" not in st.session_state:
     st.session_state.agents = [
         {"name": "לב",    "total": 5, "pref": "לילה",     "status": "פעיל", "day_off": [], "color": AGENT_COLORS.get("לב","#ccc")},
@@ -252,8 +254,9 @@ with tab1:
                     color = AGENT_COLORS.get(ag, "#eee")
                     note  = st.session_state.cell_notes.get(f"{ag}_{day}", "")
                     note_html = f"<br><small style='color:#888'>📝{note}</small>" if note else ""
+
                     # 12 שעות
-                    if twelve.get(ag):
+                    if st.session_state.twelve_hour.get(ag):
                         if shift == "בוקר":
                             display_hours = "07:00-19:00"
                         elif shift == "לילה":
@@ -263,10 +266,15 @@ with tab1:
                     else:
                         display_hours = hours
 
+                    # נציג רואה
+                    watcher_key = f"{day}_{shift}"
+                    is_watcher = st.session_state.watcher.get(watcher_key) == ag
+                    watcher_badge = " 👁" if is_watcher else ""
+
                     cells.append(
                         f"<span style='background:{color};border-radius:6px;"
                         f"padding:2px 6px;display:inline-block;margin:1px;font-size:12px;'>"
-                        f"{ag}<br><small>{display_hours}</small>{note_html}</span>"
+                        f"{ag}{watcher_badge}<br><small>{display_hours}</small>{note_html}</span>"
                     )
                 agents_str = "<br>".join(cells) if cells else "—"
                 rows_html += (
