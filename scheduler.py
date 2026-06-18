@@ -153,9 +153,10 @@ def generate_schedule(
             if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
                 return False
         # חוק שישי/שבת – עדיפות, לא חובה מוחלטת
-        if day == "שישי" and schedule[name]["שבת"] != "—":
+        # שישי ערב/לילה חוסם שבת
+        if day == "שישי" and shift in ("ערב", "לילה") and schedule[name]["שבת"] != "—":
             return False
-        if day == "שבת" and schedule[name]["שישי"] != "—":
+        if day == "שבת" and schedule[name]["שישי"] in ("ערב", "לילה"):
             return False
         return True
 
