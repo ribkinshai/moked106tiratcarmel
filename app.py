@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import streamlit.components.v1 as components
 from scheduler import generate_schedule
 
 st.set_page_config(
@@ -16,19 +17,6 @@ st.markdown("""
     .main { background-color: #f8f9fc; }
     h1, h2, h3 { color: #3d3d5c; }
 
-    .schedule-table { width:100%; border-collapse:collapse; direction:rtl; }
-    .schedule-table th {
-        background:#e8e4f8; color:#3d3d5c; padding:10px 8px;
-        text-align:center; font-weight:700; font-size:15px; border:1px solid #ccc9e0;
-    }
-    .schedule-table td {
-        padding:10px 8px; text-align:center; border:1px solid #ddd;
-        font-size:13px; vertical-align:top; min-width:100px;
-    }
-    .cell-morning { background:#d4ecd4 !important; color:#2d6a2d; }
-    .cell-noon    { background:#fde8c8 !important; color:#7a4a00; }
-    .cell-night   { background:#d9d4f0 !important; color:#3a2070; }
-
     div[data-testid="stSidebar"] { background:#edeaf8; }
     .stButton > button {
         background:#7c6fc4; color:white; border-radius:10px;
@@ -38,31 +26,28 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Session State ────────────────────────────────────────────────────────────
+# ─── Session State ─────────────────────────────────────────────────────────
 if "agents" not in st.session_state:
     st.session_state.agents = [
-        {"name": "לב",     "total": 5, "pref": "לילה"},
-        {"name": "איתי",   "total": 5, "pref": "לילה"},
-        {"name": "גיא",    "total": 5, "pref": "לילה"},
-        {"name": "אלינור", "total": 5, "pref": "לילה"},
-        {"name": "שרית",   "total": 5, "pref": "בוקר/ערב"},
-        {"name": "רונית",  "total": 5, "pref": "בוקר/ערב"},
-        {"name": "שני",    "total": 5, "pref": "בוקר/ערב"},
-        {"name": "נציג 8", "total": 4, "pref": "ללא העדפה"},
-        {"name": "נציג 9", "total": 4, "pref": "ללא העדפה"},
-        {"name": "נציג 10","total": 4, "pref": "ללא העדפה"},
+        {"name": "לב",    "total": 5, "pref": "לילה"},
+        {"name": "איתי",  "total": 3, "pref": "לילה"},
+        {"name": "גיא",   "total": 5, "pref": "לילה"},
+        {"name": "אלינור","total": 2, "pref": "לילה"},
+        {"name": "שרית",  "total": 5, "pref": "בוקר/ערב"},
+        {"name": "רונית", "total": 5, "pref": "פיזור"},
+        {"name": "שני",   "total": 5, "pref": "פיזור"},
+        {"name": "ריקי",  "total": 3, "pref": "בוקר"},
+        {"name": "אדיר",  "total": 5, "pref": "ללא העדפה"},
+        {"name": "טלי",   "total": 5, "pref": "ללא העדפה"},
     ]
 
-if "schedule_df" not in st.session_state:
-    st.session_state.schedule_df = None
-
-if "edit_mode" not in st.session_state:
-    st.session_state.edit_mode = False
+if "schedule_df"       not in st.session_state: st.session_state.schedule_df = None
+if "edit_mode"         not in st.session_state: st.session_state.edit_mode = False
+if "fourth_saturday"   not in st.session_state: st.session_state.fourth_saturday = True
 
 DAYS_ORDER    = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"]
 SHIFTS        = ["בוקר", "ערב", "לילה"]
 SHIFT_OPTIONS = ["בוקר", "ערב", "לילה", "—"]
-PREF_OPTIONS  = ["לילה", "בוקר/ערב", "ללא העדפה"]
 
 SHIFT_HOURS = {
     "בוקר": "07:00-15:00",
@@ -72,51 +57,38 @@ SHIFT_HOURS = {
 SHIFT_CLASS = {"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}
 SHIFT_EMOJI = {"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}
 
-# ─── Sidebar ──────────────────────────────────────────────────────────────────
+# ─── Sidebar ───────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 👥 ניהול נציגים")
-    updated_agents = []
-    for i, agent in enumerate(st.session_state.agents):
-        with st.expander(f"✏️ {agent['name']}", expanded=False):
-            name  = st.text_input("שם", value=agent["name"], key=f"name_{i}")
-            total = st.number_input("מכסה שבועית", min_value=1, max_value=7,
-                                    value=agent["total"], key=f"total_{i}")
-            pref  = st.selectbox("העדפת משמרת", PREF_OPTIONS,
-                                  index=PREF_OPTIONS.index(agent["pref"]), key=f"pref_{i}")
-            updated_agents.append({"name": name, "total": total, "pref": pref})
-    st.session_state.agents = updated_agents
+    st.markdown("## ⚙️ הגדרות")
+    fourth_sat = st.toggle("שבת רביעית (ריקי עובדת)", value=st.session_state.fourth_saturday)
+    st.session_state.fourth_saturday = fourth_sat
 
     st.divider()
-    if st.button("➕ הוסף נציג"):
-        st.session_state.agents.append({"name": f"נציג {len(st.session_state.agents)+1}",
-                                         "total": 4, "pref": "ללא העדפה"})
-        st.rerun()
-    if len(st.session_state.agents) > 1:
-        if st.button("🗑 הסר נציג אחרון"):
-            st.session_state.agents.pop()
-            st.rerun()
+    st.markdown("## 👥 נציגים")
+    for a in st.session_state.agents:
+        st.markdown(f"**{a['name']}** – מכסה {a['total']} | {a['pref']}")
 
     st.divider()
-    st.markdown("**מקרא צבעים:**")
-    st.markdown("""
-    <span class='badge badge-morning'>☀️ בוקר 07:00-15:00</span><br><br>
-    <span class='badge badge-noon'>🌤 ערב 15:00-23:00</span><br><br>
-    <span class='badge badge-night'>🌙 לילה 23:00-07:00</span>
-    """, unsafe_allow_html=True)
+    st.markdown("**מקרא:**")
+    st.markdown("🟢 בוקר 07:00-15:00")
+    st.markdown("🟡 ערב 15:00-23:00")
+    st.markdown("🟣 לילה 23:00-07:00")
 
-# ─── Main ─────────────────────────────────────────────────────────────────────
+# ─── Main ──────────────────────────────────────────────────────────────────
 st.markdown("<h1 style='text-align:right'>📋 סידור עבודה – מוקד 106</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:right; color:#888;'>שיבוץ אוטומטי חכם עם עריכה ידנית</p>",
-            unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns([2, 1, 1])
 with col1:
     if st.button("⚡ צור סידור אוטומטי", use_container_width=True):
-        with st.spinner("מחשב סידור אופטימלי..."):
-            df = generate_schedule(st.session_state.agents, DAYS_ORDER)
+        with st.spinner("מחשב סידור..."):
+            df = generate_schedule(
+                st.session_state.agents,
+                DAYS_ORDER,
+                is_fourth_saturday=st.session_state.fourth_saturday
+            )
             st.session_state.schedule_df = df
             st.session_state.edit_mode = False
-        st.success("הסידור נוצר בהצלחה! ✅")
+        st.success("הסידור נוצר! ✅")
 
 with col2:
     if st.session_state.schedule_df is not None:
@@ -130,15 +102,13 @@ with col3:
             st.session_state.edit_mode = False
             st.rerun()
 
-# ─── Display ──────────────────────────────────────────────────────────────────
+# ─── Display ───────────────────────────────────────────────────────────────
 if st.session_state.schedule_df is not None:
     df = st.session_state.schedule_df
 
-    # ── מצב עריכה ──
     if st.session_state.edit_mode:
         st.markdown("### ✏️ עריכה ידנית")
-        st.info("שנה משמרות ישירות בטבלה למטה, ולחץ 'שמור שינויים' בסיום.")
-
+        st.info("שנה משמרות ולחץ 'שמור שינויים'.")
         edited_data = {}
         for idx, row in df.iterrows():
             agent_name = row["שם"]
@@ -148,12 +118,9 @@ if st.session_state.schedule_df is not None:
             for j, day in enumerate(DAYS_ORDER):
                 current_val = row[day]
                 options_idx = SHIFT_OPTIONS.index(current_val) if current_val in SHIFT_OPTIONS else 3
-                sel = cols[j+1].selectbox(
-                    day, SHIFT_OPTIONS,
-                    index=options_idx,
-                    key=f"edit_{agent_name}_{day}",
-                    label_visibility="collapsed"
-                )
+                sel = cols[j+1].selectbox(day, SHIFT_OPTIONS, index=options_idx,
+                                           key=f"edit_{agent_name}_{day}",
+                                           label_visibility="collapsed")
                 edited_data[agent_name][day] = sel
 
         if st.button("💾 שמור שינויים", type="primary"):
@@ -162,39 +129,42 @@ if st.session_state.schedule_df is not None:
                 lambda r: sum(1 for v in r if v != "—"), axis=1)
             st.session_state.schedule_df = new_df
             st.session_state.edit_mode = False
-            st.success("השינויים נשמרו! ✅")
+            st.success("נשמר! ✅")
             st.rerun()
 
-    # ── מצב תצוגה ──
     else:
         st.markdown("### 📅 סידור השבוע")
 
-        # כותרות – ימים
-        import streamlit.components.v1 as components
-
         header_html = "".join(f"<th>{day}</th>" for day in DAYS_ORDER)
-
         rows_html = ""
         for shift in SHIFTS:
-            shift_class = SHIFT_CLASS[shift]
+            sc    = SHIFT_CLASS[shift]
             emoji = SHIFT_EMOJI[shift]
             hours = SHIFT_HOURS[shift]
             rows_html += "<tr>"
             for day in DAYS_ORDER:
                 agents_in_shift = df[df[day] == shift]["שם"].tolist()
                 agents_str = "<br>".join(agents_in_shift) if agents_in_shift else "—"
-                rows_html += f"<td class='{shift_class}'><b>{emoji} {shift}</b><br><small>{hours}</small><br>{agents_str}</td>"
+                rows_html += (
+                    f"<td class='{sc}'>"
+                    f"<b>{emoji} {shift}</b><br>"
+                    f"<small>{hours}</small><br>"
+                    f"{agents_str}</td>"
+                )
             rows_html += "</tr>"
 
         full_html = f"""
         <html><head><style>
-            body {{ font-family: 'Heebo', sans-serif; direction: rtl; }}
+            body {{ font-family: 'Heebo', sans-serif; direction: rtl; margin:0; }}
             table {{ width:100%; border-collapse:collapse; }}
-            th {{ background:#e8e4f8; color:#3d3d5c; padding:10px; text-align:center; font-size:15px; border:1px solid #ccc9e0; }}
-            td {{ padding:10px; text-align:center; border:1px solid #ddd; vertical-align:top; min-width:100px; line-height:1.8; }}
+            th {{ background:#e8e4f8; color:#3d3d5c; padding:10px;
+                  text-align:center; font-size:15px; border:1px solid #ccc9e0; }}
+            td {{ padding:10px; text-align:center; border:1px solid #ddd;
+                  vertical-align:top; min-width:110px; line-height:1.8; }}
             .cell-morning {{ background:#d4ecd4; color:#2d6a2d; }}
             .cell-noon    {{ background:#fde8c8; color:#7a4a00; }}
             .cell-night   {{ background:#d9d4f0; color:#3a2070; }}
+            small {{ opacity:0.75; font-size:11px; }}
         </style></head><body>
         <table>
             <thead><tr>{header_html}</tr></thead>
@@ -202,30 +172,29 @@ if st.session_state.schedule_df is not None:
         </table>
         </body></html>
         """
-        components.html(full_html, height=350, scrolling=True)
+        components.html(full_html, height=380, scrolling=True)
 
-        # ── סיכום נציגים ──
         st.divider()
-        st.markdown("### 📊 סיכום משמרות לנציג")
+        st.markdown("### 📊 סיכום משמרות")
         summary_cols = st.columns(len(st.session_state.agents))
         for i, (_, row) in enumerate(df.iterrows()):
-            agent_total = next((a["total"] for a in st.session_state.agents if a["name"] == row["שם"]), 0)
+            agent_total = next((a["total"] for a in st.session_state.agents
+                                if a["name"] == row["שם"]), 0)
             filled = row.get("סה״כ", 0)
+            color  = "#2d6a2d" if filled >= agent_total else "#cc4444"
             with summary_cols[i]:
-                color = "#2d6a2d" if filled >= agent_total else "#cc4444"
                 st.markdown(f"""
-                <div style='background:white; border-radius:10px; padding:10px;
-                            box-shadow:0 2px 6px rgba(0,0,0,0.07); text-align:center; direction:rtl;'>
-                    <div style='font-size:13px; font-weight:700; color:#3d3d5c;'>{row['שם']}</div>
-                    <div style='font-size:22px; font-weight:700; color:{color};'>{filled}/{agent_total}</div>
-                    <div style='font-size:11px; color:#888;'>משמרות</div>
+                <div style='background:white;border-radius:10px;padding:10px;
+                            box-shadow:0 2px 6px rgba(0,0,0,0.07);text-align:center;'>
+                    <div style='font-size:12px;font-weight:700;color:#3d3d5c;'>{row['שם']}</div>
+                    <div style='font-size:20px;font-weight:700;color:{color};'>{filled}/{agent_total}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
 else:
     st.markdown("""
-    <div style='text-align:center; padding:60px 20px; color:#aaa; direction:rtl;'>
+    <div style='text-align:center;padding:60px 20px;color:#aaa;direction:rtl;'>
         <div style='font-size:60px;'>📋</div>
-        <div style='font-size:20px; margin-top:10px;'>לחץ על "צור סידור אוטומטי" כדי להתחיל</div>
+        <div style='font-size:20px;margin-top:10px;'>לחץ על "צור סידור אוטומטי" כדי להתחיל</div>
     </div>
     """, unsafe_allow_html=True)
