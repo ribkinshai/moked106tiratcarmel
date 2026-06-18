@@ -288,17 +288,7 @@ def generate_schedule(
                 assign(agent_name, day, shift)
                 break
 
-    # ── שלב 5: השלמה רגועה (ללא חוק שישי/שבת) לסגירת חורים ──
-    for day in ["שישי", "שבת"]:
-        for shift in SHIFTS:
-            if shift == "ערב":
-                required = required_evening(day)
-            else:
-                required = REQUIRED_PER_SHIFT[day][shift]
-            already = sum(1 for n in names if schedule[n][day] == shift)
-            needed  = required - already
-            if needed > 0:
-                fill_shift(day, shift, needed, use_relaxed=True)
+
 
     rows = []
     for agent_name in names:
