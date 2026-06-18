@@ -238,16 +238,48 @@ with tab1:
 
         full_html = f"""
         <html><head><style>
-            body {{ font-family:'Heebo',sans-serif; direction:rtl; margin:0; }}
-            table {{ width:100%; border-collapse:collapse; }}
-            th {{ background:#e8e4f8; color:#3d3d5c; padding:10px;
-                  text-align:center; font-size:14px; border:1px solid #ccc9e0; }}
-            td {{ padding:10px; text-align:center; border:1px solid #ddd;
-                  vertical-align:top; min-width:110px; line-height:1.8; }}
-            .cell-morning {{ background:#d4ecd4; color:#2d6a2d; }}
-            .cell-noon    {{ background:#fde8c8; color:#7a4a00; }}
-            .cell-night   {{ background:#d9d4f0; color:#3a2070; }}
-            small {{ font-size:11px; }}
+            @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800&display=swap');
+            body {{
+                font-family:'Heebo',sans-serif; direction:rtl; margin:0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 20px;
+            }}
+            table {{ width:100%; border-collapse:separate; border-spacing:6px; }}
+            th {{
+                background: linear-gradient(180deg, #ffffff 0%, #e8e4f8 100%);
+                color:#3d3d5c; padding:16px; border-radius:12px;
+                font-weight:800; text-shadow:1px 1px 0 white;
+                box-shadow: 0 6px 0 #5c4fa4, 0 10px 20px rgba(0,0,0,0.2);
+                text-align:center; font-size:14px;
+            }}
+            td {{
+                padding:16px; border-radius:12px; vertical-align:top;
+                min-width:110px;
+                box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1);
+                text-align:center;
+            }}
+            .cell-morning {{
+                background: linear-gradient(180deg, #b8f2c1 0%, #6ee7b7 100%);
+                color:#064e3b;
+            }}
+            .cell-noon    {{
+                background: linear-gradient(180deg, #fde68a 0%, #f59e0b 100%);
+                color:#78350f;
+            }}
+            .cell-night   {{
+                background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 100%);
+                color:#2e1065;
+            }}
+            td b {{ font-weight:800; font-size:14px; }}
+            small {{ font-size:11px; opacity:0.8; }}
+            span[style*="background"] {{
+                background: linear-gradient(180deg, white, #f5f5fa) !important;
+                color:#3d3d5c !important;
+                box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
+                border-radius:10px !important;
+                padding:6px 10px !important;
+                font-weight:700 !important;
+            }}
         </style></head><body>
         <table>
             <thead><tr>{header_html}</tr></thead>
@@ -255,7 +287,7 @@ with tab1:
         </table>
         </body></html>
         """
-        components.html(full_html, height=440, scrolling=True)
+        components.html(full_html, height=560, scrolling=True)
 
         # ── לוח עריכה ──
         st.markdown("---")
@@ -438,16 +470,48 @@ with tab1:
 
         full_html = f"""
         <html><head><style>
-            body {{ font-family:'Heebo',sans-serif; direction:rtl; margin:0; }}
-            table {{ width:100%; border-collapse:collapse; }}
-            th {{ background:#e8e4f8; color:#3d3d5c; padding:10px;
-                  text-align:center; font-size:14px; border:1px solid #ccc9e0; }}
-            td {{ padding:10px; text-align:center; border:1px solid #ddd;
-                  vertical-align:top; min-width:110px; line-height:1.8; }}
-            .cell-morning {{ background:#d4ecd4; color:#2d6a2d; }}
-            .cell-noon    {{ background:#fde8c8; color:#7a4a00; }}
-            .cell-night   {{ background:#d9d4f0; color:#3a2070; }}
-            small {{ font-size:11px; }}
+            @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800&display=swap');
+            body {{
+                font-family:'Heebo',sans-serif; direction:rtl; margin:0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 20px;
+            }}
+            table {{ width:100%; border-collapse:separate; border-spacing:6px; }}
+            th {{
+                background: linear-gradient(180deg, #ffffff 0%, #e8e4f8 100%);
+                color:#3d3d5c; padding:16px; border-radius:12px;
+                font-weight:800; text-shadow:1px 1px 0 white;
+                box-shadow: 0 6px 0 #5c4fa4, 0 10px 20px rgba(0,0,0,0.2);
+                text-align:center; font-size:14px;
+            }}
+            td {{
+                padding:16px; border-radius:12px; vertical-align:top;
+                min-width:110px;
+                box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1);
+                text-align:center;
+            }}
+            .cell-morning {{
+                background: linear-gradient(180deg, #b8f2c1 0%, #6ee7b7 100%);
+                color:#064e3b;
+            }}
+            .cell-noon    {{
+                background: linear-gradient(180deg, #fde68a 0%, #f59e0b 100%);
+                color:#78350f;
+            }}
+            .cell-night   {{
+                background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 100%);
+                color:#2e1065;
+            }}
+            td b {{ font-weight:800; font-size:14px; }}
+            small {{ font-size:11px; opacity:0.8; }}
+            span[style*="background"] {{
+                background: linear-gradient(180deg, white, #f5f5fa) !important;
+                color:#3d3d5c !important;
+                box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
+                border-radius:10px !important;
+                padding:6px 10px !important;
+                font-weight:700 !important;
+            }}
         </style></head><body>
         <table>
             <thead><tr>{header_html}</tr></thead>
@@ -455,7 +519,7 @@ with tab1:
         </table>
         </body></html>
         """
-        components.html(full_html, height=440, scrolling=True)
+        components.html(full_html, height=560, scrolling=True)
 
         with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
             c1, c2, c3, c4 = st.columns(4)
