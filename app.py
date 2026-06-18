@@ -547,9 +547,21 @@ with tab1:
                     text-align:center; border:2px solid #999;
                     font-size:12px;
                 }}
-                .cell-morning {{ background:#d4ecd4; color:#064e3b; }}
-                .cell-noon    {{ background:#fde68a; color:#78350f; }}
-                .cell-night   {{ background:#c4b5fd; color:#2e1065; }}
+                .cell-morning {{
+                    background:#d4ecd4 !important; color:#064e3b !important;
+                    border-right:8px solid #10b981 !important;
+                }}
+                .cell-noon    {{
+                    background:#fde68a !important; color:#78350f !important;
+                    border-right:8px solid #f59e0b !important;
+                }}
+                .cell-night   {{
+                    background:#c4b5fd !important; color:#2e1065 !important;
+                    border-right:8px solid #8b5cf6 !important;
+                }}
+                .cell-morning b {{ color:#10b981 !important; }}
+                .cell-noon    b {{ color:#f59e0b !important; }}
+                .cell-night   b {{ color:#8b5cf6 !important; }}
                 td b {{ font-weight:800; font-size:13px; display:block; margin-bottom:4px; }}
                 td small {{ font-size:10px; opacity:0.8; display:block; margin-bottom:6px; }}
                 td span {{
