@@ -553,7 +553,7 @@ td span {{ background:white !important; border:1px solid #999; padding:4px 8px; 
 </body></html>"""
 
         import json
-        js_html = json.dumps(print_html_inner)
+        js_html = json.dumps(print_html_inner, ensure_ascii=False)
         components.html(f"""
             <button onclick='var w=window.open("","_blank");w.document.write({js_html});w.document.close();'
                     style='background:#7c6fc4;color:white;border:none;padding:12px 30px;
