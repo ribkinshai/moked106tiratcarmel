@@ -522,78 +522,68 @@ with tab1:
         components.html(full_html, height=560, scrolling=True)
 
         # ── גרסת הדפסה ──
-        print_html = f"""
-        <!DOCTYPE html>
-        <html lang="he" dir="rtl"><head>
-        <meta charset="UTF-8">
-        <title>סידור עבודה - מוקד 106</title>
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap');
-            * {{ box-sizing: border-box; }}
-            body {{
-                font-family:'Heebo',sans-serif; direction:rtl;
-                margin:0; padding:20px; background:white;
-            }}
-            h1 {{ text-align:center; color:#3d3d5c; margin-bottom:8px; }}
-            .week-info {{ text-align:center; color:#666; margin-bottom:20px; font-size:14px; }}
-            table {{ width:100%; border-collapse:collapse; }}
-            th {{
-                background:#e8e4f8; color:#3d3d5c; padding:12px;
-                font-weight:800; border:2px solid #5c4fa4;
-                text-align:center; font-size:14px;
-            }}
-            td {{
-                padding:12px; vertical-align:top; min-width:110px;
-                text-align:center; border:2px solid #999;
-                font-size:13px;
-            }}
-            .cell-morning {{ background:#d4ecd4 !important; color:#064e3b; }}
-            .cell-noon    {{ background:#fde68a !important; color:#78350f; }}
-            .cell-night   {{ background:#c4b5fd !important; color:#2e1065; }}
-            td b {{ font-weight:800; font-size:14px; display:block; margin-bottom:4px; }}
-            td small {{ font-size:11px; opacity:0.8; display:block; margin-bottom:8px; }}
-            td span {{
-                background:white !important; border:1px solid #ccc;
-                padding:4px 8px; border-radius:6px; margin:2px;
-                display:inline-block; font-weight:600; font-size:12px;
-                color:#3d3d5c !important;
-            }}
-            .print-btn {{
-                background:#7c6fc4; color:white; border:none;
-                padding:12px 30px; font-size:16px; border-radius:10px;
-                cursor:pointer; font-family:'Heebo',sans-serif; font-weight:700;
-                margin:20px auto; display:block;
-            }}
-            .print-btn:hover {{ background:#5c4fa4; }}
-            @media print {{
-                .print-btn {{ display:none; }}
-                body {{ padding:0; }}
-                @page {{ size: landscape; margin: 1cm; }}
-            }}
-        </style></head><body>
-        <h1>📋 סידור עבודה – מוקד 106</h1>
-        <div class="week-info">
-            {f'<strong>שבוע:</strong> {st.session_state.week_label}' if st.session_state.week_label else ''}
-            {f' | {st.session_state.week_notes}' if st.session_state.week_notes else ''}
-        </div>
-        <button class="print-btn" onclick="window.print()">🖨️ הדפס</button>
-        <table>
-            <thead><tr>{header_html}</tr></thead>
-            <tbody>{rows_html}</tbody>
-        </table>
-        </body></html>
-        """
-
-        # כפתור פתיחת גרסת הדפסה
-        import base64
-        b64 = base64.b64encode(print_html.encode("utf-8")).decode()
-        href = f'data:text/html;base64,{b64}'
-        st.markdown(
-            f'<a href="{href}" target="_blank" '
-            f'style="display:inline-block;background:#7c6fc4;color:white;'
-            f'padding:10px 24px;border-radius:10px;text-decoration:none;'
-            f'font-weight:700;margin:10px 0;">🖨️ פתח גרסת הדפסה</a>',
-            unsafe_allow_html=True
+        with st.expander("🖨️ גרסת הדפסה", expanded=False):
+            print_html = f"""
+            <!DOCTYPE html>
+            <html lang="he" dir="rtl"><head>
+            <meta charset="UTF-8">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap');
+                * {{ box-sizing: border-box; }}
+                body {{
+                    font-family:'Heebo',sans-serif; direction:rtl;
+                    margin:0; padding:10px; background:white;
+                }}
+                h1 {{ text-align:center; color:#3d3d5c; margin:0 0 8px; font-size:20px; }}
+                .week-info {{ text-align:center; color:#666; margin-bottom:15px; font-size:13px; }}
+                table {{ width:100%; border-collapse:collapse; }}
+                th {{
+                    background:#e8e4f8; color:#3d3d5c; padding:10px;
+                    font-weight:800; border:2px solid #5c4fa4;
+                    text-align:center; font-size:13px;
+                }}
+                td {{
+                    padding:10px; vertical-align:top; min-width:100px;
+                    text-align:center; border:2px solid #999;
+                    font-size:12px;
+                }}
+                .cell-morning {{ background:#d4ecd4; color:#064e3b; }}
+                .cell-noon    {{ background:#fde68a; color:#78350f; }}
+                .cell-night   {{ background:#c4b5fd; color:#2e1065; }}
+                td b {{ font-weight:800; font-size:13px; display:block; margin-bottom:4px; }}
+                td small {{ font-size:10px; opacity:0.8; display:block; margin-bottom:6px; }}
+                td span {{
+                    background:white; border:1px solid #ccc;
+                    padding:3px 7px; border-radius:6px; margin:2px;
+                    display:inline-block; font-weight:600; font-size:11px;
+                    color:#3d3d5c;
+                }}
+                .print-btn {{
+                    background:#7c6fc4; color:white; border:none;
+                    padding:10px 24px; font-size:14px; border-radius:8px;
+                    cursor:pointer; font-family:'Heebo',sans-serif; font-weight:700;
+                    margin:10px auto; display:block;
+                }}
+                @media print {{
+                    .print-btn, .no-print {{ display:none !important; }}
+                    body {{ padding:0; }}
+                    @page {{ size: landscape; margin: 1cm; }}
+                }}
+            </style></head><body>
+            <button class="print-btn" onclick="window.print()">🖨️ הדפס</button>
+            <h1>📋 סידור עבודה – מוקד 106</h1>
+            <div class="week-info">
+                {f'<b>שבוע:</b> {st.session_state.week_label}' if st.session_state.week_label else ''}
+                {f' | {st.session_state.week_notes}' if st.session_state.week_notes else ''}
+            </div>
+            <table>
+                <thead><tr>{header_html}</tr></thead>
+                <tbody>{rows_html}</tbody>
+            </table>
+            </body></html>
+            """
+            components.html(print_html, height=600, scrolling=True)
+            st.info("💡 לחץ על כפתור '🖨️ הדפס' בתוך הטבלה למעלה")
         )
 
         with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
