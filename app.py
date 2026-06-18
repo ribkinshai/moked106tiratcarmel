@@ -9,17 +9,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(table_html, unsafe_allow_html=True)
+st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Heebo', sans-serif; direction: rtl; }
     .main { background-color: #f8f9fc; }
     h1, h2, h3 { color: #3d3d5c; }
-
-    .badge { display:inline-block; padding:3px 12px; border-radius:20px; font-size:13px; font-weight:600; margin:2px; }
-    .badge-morning { background:#d4ecd4; color:#2d6a2d; }
-    .badge-noon    { background:#fde8c8; color:#7a4a00; }
-    .badge-night   { background:#d9d4f0; color:#3a2070; }
 
     .schedule-table { width:100%; border-collapse:collapse; direction:rtl; }
     .schedule-table th {
@@ -30,8 +25,6 @@ st.markdown(table_html, unsafe_allow_html=True)
         padding:10px 8px; text-align:center; border:1px solid #ddd;
         font-size:13px; vertical-align:top; min-width:100px;
     }
-    .schedule-table tr:hover td { background-color: inherit; }
-
     .cell-morning { background:#d4ecd4 !important; color:#2d6a2d; }
     .cell-noon    { background:#fde8c8 !important; color:#7a4a00; }
     .cell-night   { background:#d9d4f0 !important; color:#3a2070; }
