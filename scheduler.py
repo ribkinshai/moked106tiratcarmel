@@ -35,7 +35,7 @@ FORBIDDEN = {
               ("שישי", "בוקר"), ("שישי", "ערב"), ("שישי", "לילה")],
 }
 
-NIGHT_LOVERS  = {"לב", "איתי", "גיא", "אלינור"}
+NIGHT_LOVERS   = {"לב", "איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית"}
 
 
@@ -49,7 +49,6 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
         totals["ריקי"] = 4
         forbidden_local["ריקי"] = [d for d in forbidden_local.get("ריקי", []) if d[0] != "שבת"]
 
-    # ── אתחול מבני נתונים ──
     schedule: Dict[str, Dict[str, str]] = {n: {d: "—" for d in DAYS_ORDER} for n in names}
     assigned_count: Dict[str, int]      = {n: 0 for n in names}
     shift_type_count: Dict[str, Dict[str, int]] = {n: {"בוקר": 0, "ערב": 0, "לילה": 0} for n in names}
