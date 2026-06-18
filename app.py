@@ -128,9 +128,6 @@ with tab1:
                 st.session_state.schedule_df = df
                 st.session_state.edit_mode   = False
             st.success("הסידור נוצר! ✅")
-            st.write("ראשון בוקר:", df[df["ראשון"] == "בוקר"]["שם"].tolist())
-            st.write("ראשון לילה:", df[df["ראשון"] == "לילה"]["שם"].tolist())
-            st.write("שבת לילה:", df[df["שבת"] == "לילה"]["שם"].tolist())
     with col2:
         if st.session_state.schedule_df is not None:
             if st.button("✏️ עריכה", use_container_width=True):
