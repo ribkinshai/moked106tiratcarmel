@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit.components.v1 as components
 from scheduler import generate_schedule, AGENT_COLORS, SHIFT_HOURS, DAYS_ORDER, SHIFTS
 from archive import load_archive, save_to_archive, delete_from_archive, archive_to_df
-from pdf_export import export_pdf
 
 st.set_page_config(
     page_title="סידור עבודה – מוקד 106",
