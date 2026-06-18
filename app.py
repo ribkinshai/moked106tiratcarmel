@@ -541,26 +541,59 @@ with tab1:
 <meta charset='UTF-8'>
 <title>סידור עבודה - מוקד 106</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800&display=swap');
 * {{ box-sizing: border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }}
-body {{ font-family:Arial,sans-serif; direction:rtl; margin:0; padding:15px; background:white; }}
-h1 {{ text-align:center; color:#3d3d5c; margin:0 0 8px; font-size:22px; }}
-.week-info {{ text-align:center; color:#666; margin-bottom:15px; font-size:14px; }}
-table {{ width:100%; border-collapse:collapse; }}
-th {{ background:#e8e4f8 !important; color:#3d3d5c; padding:10px; font-weight:800; border:2px solid #5c4fa4; text-align:center; font-size:14px; }}
-td {{ padding:12px; vertical-align:top; text-align:center; border:2px solid #999; font-size:13px; }}
-.cell-morning {{ background:#d4ecd4 !important; color:#064e3b; }}
-.cell-noon {{ background:#fde68a !important; color:#78350f; }}
-.cell-night {{ background:#c4b5fd !important; color:#2e1065; }}
-td b {{ font-weight:800; font-size:14px; display:block; margin-bottom:4px; }}
-td small {{ font-size:11px; display:block; margin-bottom:6px; }}
-td span {{ background:white !important; border:1px solid #999; padding:4px 8px; border-radius:6px; margin:2px; display:inline-block; font-weight:600; font-size:12px; color:#3d3d5c; }}
-.print-btn {{ background:#7c6fc4; color:white; border:none; padding:12px 30px; font-size:16px; border-radius:8px; cursor:pointer; font-weight:700; margin:15px auto; display:block; }}
-@media print {{ .print-btn {{ display:none; }} @page {{ size:landscape; margin:1cm; }} }}
+body {{
+    font-family:'Heebo',sans-serif; direction:rtl; margin:0; padding:20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}}
+.header {{ text-align:center; padding:10px 0; }}
+.header h1 {{ margin:0; color:white; font-weight:800; font-size:28px; text-shadow:2px 2px 4px rgba(0,0,0,0.2); }}
+.header h2 {{ margin:5px 0 0; color:#fff; font-weight:600; font-size:18px; opacity:0.95; }}
+.notes {{ text-align:center; color:white; margin:10px 0; font-size:14px; opacity:0.9; }}
+table {{ width:100%; border-collapse:separate; border-spacing:6px; margin-top:15px; }}
+th {{
+    background: linear-gradient(180deg, #ffffff 0%, #e8e4f8 100%);
+    color:#3d3d5c; padding:16px; border-radius:12px;
+    font-weight:800; text-shadow:1px 1px 0 white;
+    box-shadow: 0 6px 0 #5c4fa4, 0 10px 20px rgba(0,0,0,0.2);
+    text-align:center; font-size:14px;
+}}
+td {{
+    padding:16px; border-radius:12px; vertical-align:top;
+    min-width:110px; text-align:center;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1);
+}}
+.cell-morning {{ background: linear-gradient(180deg, #b8f2c1 0%, #6ee7b7 100%); color:#064e3b; }}
+.cell-noon    {{ background: linear-gradient(180deg, #fde68a 0%, #f59e0b 100%); color:#78350f; }}
+.cell-night   {{ background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 100%); color:#2e1065; }}
+td b {{ font-weight:800; font-size:14px; }}
+small {{ font-size:11px; opacity:0.8; }}
+td span[style*='background'] {{
+    background: linear-gradient(180deg, white, #f5f5fa) !important;
+    color:#3d3d5c !important;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
+    border-radius:10px !important; padding:6px 10px !important;
+    font-weight:700 !important;
+}}
+.print-btn {{
+    background:#7c6fc4; color:white; border:none;
+    padding:12px 30px; font-size:16px; border-radius:10px;
+    cursor:pointer; font-family:'Heebo',sans-serif; font-weight:700;
+    margin:15px auto; display:block;
+    box-shadow: 0 6px 0 #5c4fa4;
+}}
+@media print {{
+    .print-btn {{ display:none; }}
+    @page {{ size: landscape; margin: 0.5cm; }}
+}}
 </style></head><body>
 <button class='print-btn' onclick='window.print()'>🖨️ הדפס</button>
-<h1>📋 מוקד 106 - סידור עבודה שבועי</h1>
-<h2 style='text-align:center;color:#7c6fc4;margin:5px 0;'>📅 {next_week}</h2>
-<div class='week-info'>{st.session_state.week_notes if st.session_state.week_notes else ''}</div>
+<div class='header'>
+    <h1>📋 מוקד 106 - סידור עבודה שבועי</h1>
+    <h2>📅 {next_week}</h2>
+</div>
+<div class='notes'>{st.session_state.week_notes if st.session_state.week_notes else ''}</div>
 <table>
 <thead><tr>{header_html}</tr></thead>
 <tbody>{rows_html}</tbody>
@@ -570,7 +603,7 @@ td span {{ background:white !important; border:1px solid #999; padding:4px 8px; 
         st.download_button(
             label="🖨️ הורד גרסת הדפסה (HTML)",
             data=print_html_inner.encode("utf-8"),
-            file_name=f"sidur_print_{st.session_state.week_label or 'export'}.html",
+            file_name=f"sidur_print_{next_week.replace('/','-')}.html",
             mime="text/html",
         )
         st.caption("💡 לאחר הורדה – פתח את הקובץ בדפדפן ולחץ הדפס. הצבעים יודפסו!")
