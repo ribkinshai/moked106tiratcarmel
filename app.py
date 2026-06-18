@@ -331,6 +331,13 @@ with tab1:
                                                label_visibility="collapsed")
                             if add != "—":
                                 edited_data[add][day] = shift
+                                new_rows = []
+                                for a in all_agents:
+                                    if a in edited_data:
+                                        row = edited_data[a]
+                                        row["סה״כ"] = sum(1 for d in DAYS_ORDER if row.get(d,"—") != "—")
+                                        new_rows.append(row)
+                                st.session_state.schedule_df = pd.DataFrame(new_rows)
                                 st.rerun()
 
         st.divider()
