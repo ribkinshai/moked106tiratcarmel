@@ -6,9 +6,11 @@ DAYS_ORDER = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", 
 SHIFTS     = ["בוקר", "ערב", "לילה"]
 
 SHIFT_HOURS = {
-    "בוקר": "07:00-15:00",
-    "ערב":  "15:00-23:00",
-    "לילה": "23:00-07:00",
+    "בוקר":    "07:00-15:00",
+    "בוקר 12": "07:00-19:00",
+    "ערב":     "15:00-23:00",
+    "לילה":    "23:00-07:00",
+    "לילה 12": "19:00-07:00",
 }
 
 REQUIRED_PER_SHIFT = {
@@ -27,7 +29,7 @@ FIXED_SHIFTS = {
     "אדיר": {"ראשון": "בוקר", "חמישי": "בוקר"},
 }
 
-FORBIDDEN = {
+FORBIDDEN_DEFAULT = {
     "טלי":  [("שבת", "לילה"), ("ראשון", "בוקר")],
     "ריקי": [("שבת", "בוקר"), ("שבת", "ערב"), ("שבת", "לילה"),
               ("שלישי", "בוקר"), ("שלישי", "ערב"), ("שלישי", "לילה"),
@@ -38,25 +40,68 @@ FORBIDDEN = {
 NIGHT_LOVERS   = {"לב", "איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית"}
 
+AGENT_COLORS = {
+    "לב":     "#FFB3B3",
+    "איתי":   "#FFD9B3",
+    "גיא":    "#FFFBB3",
+    "אלינור": "#B3FFB3",
+    "שרית":   "#B3D9FF",
+    "רונית":  "#D9B3FF",
+    "שני":    "#FFB3E6",
+    "ריקי":   "#B3FFF0",
+    "אדיר":   "#FFE0B3",
+    "טלי":    "#E0B3FF",
+}
 
-def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: bool = True) -> pd.DataFrame:
-    names  = [a["name"] for a in agents]
+
+def generate_schedule(
+    agents: List[Dict],
+    days: List[str],
+    is_fourth_saturday: bool = True,
+    extra_forbidden: Dict = None,
+    day_off: Dict = None,
+) -> pd.DataFrame:
+    """
+    extra_forbidden: {name: [(day, shift), ...]} – איסורים נוספים מהממשק
+    day_off: {name: [day, ...]} – ימי חופש קבועים
+    """
+    names  = [a["name"] for a in agents if a.get("status", "פעיל") == "פעיל"]
     totals = {a["name"]: a["total"] for a in agents}
 
-    forbidden_local = copy.deepcopy(FORBIDDEN)
+    forbidden_local = copy.deepcopy(FORBIDDEN_DEFAULT)
+
+    # מיזוג איסורים נוספים מהממשק
+    if extra_forbidden:
+        for name, lst in extra_forbidden.items():
+            if name not in forbidden_local:
+                forbidden_local[name] = []
+            forbidden_local[name].extend(lst)
+
+    # ימי חופש קבועים → אוסר את כל המשמרות באותו יום
+    if day_off:
+        for name, off_days in day_off.items():
+            if name not in forbidden_local:
+                forbidden_local[name] = []
+            for d in off_days:
+                for s in SHIFTS:
+                    forbidden_local[name].append((d, s))
 
     if is_fourth_saturday:
         totals["ריקי"] = 4
-        forbidden_local["ריקי"] = [d for d in forbidden_local.get("ריקי", []) if d[0] != "שבת"]
+        forbidden_local["ריקי"] = [
+            d for d in forbidden_local.get("ריקי", []) if d[0] != "שבת"
+        ]
 
     schedule: Dict[str, Dict[str, str]] = {n: {d: "—" for d in DAYS_ORDER} for n in names}
     assigned_count: Dict[str, int]      = {n: 0 for n in names}
-    shift_type_count: Dict[str, Dict[str, int]] = {n: {"בוקר": 0, "ערב": 0, "לילה": 0} for n in names}
+    shift_type_count: Dict[str, Dict[str, int]] = {
+        n: {"בוקר": 0, "ערב": 0, "לילה": 0} for n in names
+    }
 
-    def is_forbidden(name: str, day: str, shift: str) -> bool:
+    def is_forbidden(name, day, shift):
         return any(fd == day and fs == shift for (fd, fs) in forbidden_local.get(name, []))
 
-    def can_assign(name: str, day: str, shift: str) -> bool:
+    def can_assign(name, day, shift):
         if assigned_count[name] >= totals[name]:
             return False
         if schedule[name][day] != "—":
@@ -65,20 +110,19 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
             return False
         day_idx = DAYS_ORDER.index(day)
         if shift == "בוקר" and day_idx > 0:
-            prev_day = DAYS_ORDER[day_idx - 1]
-            if schedule[name][prev_day] == "לילה":
+            if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
                 return False
         return True
 
-    def assign(name: str, day: str, shift: str):
+    def assign(name, day, shift):
         schedule[name][day] = shift
         assigned_count[name] += 1
         shift_type_count[name][shift] += 1
 
-    def diversity_score(name: str, shift: str) -> int:
+    def diversity_score(name, shift):
         return shift_type_count[name][shift]
 
-    # ── שלב 1: משמרות קבועות ──
+    # שלב 1 – משמרות קבועות
     for agent_name, fixed in FIXED_SHIFTS.items():
         if agent_name not in names:
             continue
@@ -86,7 +130,7 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
             if can_assign(agent_name, day, shift):
                 assign(agent_name, day, shift)
 
-    # ── שלב 2: מילוי לפי דרישות ──
+    # שלב 2 – מילוי לפי דרישות
     priority_days = ["שישי", "שבת"] + ["ראשון", "שני", "שלישי", "רביעי", "חמישי"]
 
     for day in priority_days:
@@ -127,7 +171,7 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
                         assign(agent_name, day, shift)
                         filled += 1
 
-    # ── שלב 3: השלמה למכסה ──
+    # שלב 3 – השלמה למכסה
     for agent_name in names:
         if assigned_count[agent_name] >= totals[agent_name]:
             continue
@@ -148,7 +192,6 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
                     assign(agent_name, day, shift)
                     break
 
-    # ── בניית DataFrame ──
     rows = []
     for agent_name in names:
         row = {"שם": agent_name}
