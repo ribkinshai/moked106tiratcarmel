@@ -346,16 +346,14 @@ with tab1:
                 """, unsafe_allow_html=True)
 
         # ── ייצוא PDF ───────────────────────────────────────────────────────
-        st.divider()
-        if st.button("📄 הורד סידור כ-PDF"):
-            path = export_pdf(df, st.session_state.week_label, st.session_state.week_notes)
-            with open(path, "rb") as f:
-                st.download_button(
-                    label="לחץ להורדה",
-                    data=f,
-                    file_name=f"sidur_{st.session_state.week_label or 'export'}.pdf",
-                    mime="application/pdf",
-                )
+       st.divider()
+        output = st.session_state.schedule_df.to_csv(index=False).encode("utf-8-sig")
+        st.download_button(
+            label="📥 הורד סידור כ-CSV",
+            data=output,
+            file_name=f"sidur_{st.session_state.week_label or 'export'}.csv",
+            mime="text/csv",
+        )
 
     else:
         st.markdown("""
@@ -432,16 +430,14 @@ with tab3:
 
                 c1, c2 = st.columns(2)
                 with c1:
-                    if st.button(f"📄 הורד PDF – {entry['week']}", key=f"pdf_{entry['week']}"):
-                        path = export_pdf(arc_df, entry["week"], entry.get("notes",""))
-                        with open(path, "rb") as f:
-                            st.download_button(
-                                label="לחץ להורדה",
-                                data=f,
-                                file_name=f"sidur_{entry['week']}.pdf",
-                                mime="application/pdf",
-                                key=f"dl_{entry['week']}",
-                            )
+                    output = arc_df.to_csv(index=False).encode("utf-8-sig")
+                    st.download_button(
+                        label=f"📥 הורד CSV – {entry['week']}",
+                        data=output,
+                        file_name=f"sidur_{entry['week']}.csv",
+                        mime="text/csv",
+                        key=f"dl_{entry['week']}",
+                    )
                 with c2:
                     if st.button(f"🗑 מחק – {entry['week']}", key=f"del_{entry['week']}"):
                         delete_from_archive(entry["week"])
