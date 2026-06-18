@@ -558,8 +558,9 @@ td span {{ background:white !important; border:1px solid #999; padding:4px 8px; 
 @media print {{ .print-btn {{ display:none; }} @page {{ size:landscape; margin:1cm; }} }}
 </style></head><body>
 <button class='print-btn' onclick='window.print()'>🖨️ הדפס</button>
-<h1>📋 סידור עבודה – מוקד 106</h1>
-<div class='week-info'>{f'שבוע: {st.session_state.week_label}' if st.session_state.week_label else ''} {f'| {st.session_state.week_notes}' if st.session_state.week_notes else ''}</div>
+<h1>📋 מוקד 106 - סידור עבודה שבועי</h1>
+<h2 style='text-align:center;color:#7c6fc4;margin:5px 0;'>📅 {next_week}</h2>
+<div class='week-info'>{st.session_state.week_notes if st.session_state.week_notes else ''}</div>
 <table>
 <thead><tr>{header_html}</tr></thead>
 <tbody>{rows_html}</tbody>
