@@ -552,16 +552,13 @@ td span {{ background:white !important; border:1px solid #999; padding:4px 8px; 
 </table>
 </body></html>"""
 
-        import json
-        js_html = json.dumps(print_html_inner, ensure_ascii=False)
-        components.html(f"""
-            <button onclick='var w=window.open("","_blank");w.document.write({js_html});w.document.close();'
-                    style='background:#7c6fc4;color:white;border:none;padding:12px 30px;
-                           font-size:15px;border-radius:10px;cursor:pointer;
-                           font-family:Arial,sans-serif;font-weight:700;'>
-                🖨️ פתח גרסת הדפסה בחלון חדש
-            </button>
-        """, height=70)
+       st.download_button(
+            label="🖨️ הורד גרסת הדפסה (HTML)",
+            data=print_html_inner.encode("utf-8"),
+            file_name=f"sidur_print_{st.session_state.week_label or 'export'}.html",
+            mime="text/html",
+        )
+        st.caption("💡 לאחר הורדה – פתח את הקובץ בדפדפן ולחץ הדפס. הצבעים יודפסו!"))
 
         with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
             c1, c2, c3, c4 = st.columns(4)
