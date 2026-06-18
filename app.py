@@ -238,55 +238,56 @@ with tab1:
 
         # ── לוח עריכה ──
         st.markdown("---")
-        st.markdown("### 🔧 עריכת משמרות")
-
         edited_data = {row["שם"]: dict(row) for _, row in df.iterrows()}
+        all_agents  = [a["name"] for a in st.session_state.agents
+                       if a.get("status","פעיל") == "פעיל"]
 
-        for shift in SHIFTS:
-            emoji = SHIFT_EMOJI[shift]
-            st.markdown(f"#### {emoji} {shift}")
-            for day in DAYS_ORDER:
-                agents_in = df[df[day] == shift]["שם"].tolist()
-                if not agents_in:
-                    continue
-                all_agents = [a["name"] for a in st.session_state.agents
-                              if a.get("status","פעיל") == "פעיל"]
-
-                st.markdown(f"**{day}**")
-                cols = st.columns(len(agents_in) + 1)
-
-                for i, ag in enumerate(agents_in):
-                    with cols[i]:
-                        # dropdown להחלפת נציג
-                        options = [ag] + [n for n in all_agents if n != ag and
-                                          df[df["שם"]==n][day].values[0] == "—"]
-                        selected = st.selectbox("", options, key=f"sel_{ag}_{day}_{shift}",
-                                                label_visibility="collapsed")
-                        if selected != ag:
-                            edited_data[ag][day] = "—"
-                            edited_data[selected][day] = shift
-
-                        # צ'קבוקס 12 שעות
-                        if shift in ("בוקר", "לילה") and ag not in NO_12_HOUR:
-                            key = f"{ag}_{day}"
-                            is_12 = st.session_state.twelve_hour.get(key, False)
-                            checked = st.checkbox("12ש", value=is_12, key=f"12h_{ag}_{day}")
-                            st.session_state.twelve_hour[key] = checked
-                            if checked:
-                                hours_label = "07:00-19:00" if shift == "בוקר" else "19:00-07:00"
-                                st.markdown(f"<small style='color:#888'>{hours_label}</small>",
-                                            unsafe_allow_html=True)
-
-                # כפתור הוספת נציג
-                with cols[len(agents_in)]:
+        for day in DAYS_ORDER:
+            with st.expander(f"📅 {day}", expanded=True):
+                for shift in SHIFTS:
+                    emoji       = SHIFT_EMOJI[shift]
+                    agents_in   = df[df[day] == shift]["שם"].tolist()
                     free_agents = [n for n in all_agents
-                                   if df[df["שם"]==n][day].values[0] == "—"]
+                                   if edited_data[n].get(day,"—") == "—"]
+
+                    cols = st.columns([0.8] + [1]*max(len(agents_in)+1, 1))
+                    cols[0].markdown(
+                        f"<div style='padding-top:8px;font-weight:700;"
+                        f"font-size:13px'>{emoji} {shift}</div>",
+                        unsafe_allow_html=True)
+
+                    for i, ag in enumerate(agents_in):
+                        with cols[i+1]:
+                            ag_color = AGENT_COLORS.get(ag, "#eee")
+                            options  = [ag] + [n for n in free_agents if n != ag]
+                            selected = st.selectbox("",options,
+                                                     key=f"sel_{ag}_{day}_{shift}",
+                                                     label_visibility="collapsed")
+                            if selected != ag:
+                                edited_data[ag][day]       = "—"
+                                edited_data[selected][day] = shift
+
+                            if shift in ("בוקר","לילה") and ag not in NO_12_HOUR:
+                                key    = f"{ag}_{day}"
+                                is_12  = st.session_state.twelve_hour.get(key, False)
+                                checked = st.checkbox("⏱12ש", value=is_12,
+                                                       key=f"12h_{ag}_{day}")
+                                st.session_state.twelve_hour[key] = checked
+                                if checked:
+                                    label = "07:00-19:00" if shift=="בוקר" else "19:00-07:00"
+                                    st.markdown(
+                                        f"<div style='font-size:11px;color:#7c6fc4;"
+                                        f"font-weight:700'>{label}</div>",
+                                        unsafe_allow_html=True)
+
+                    # כפתור הוספה
                     if free_agents:
-                        add = st.selectbox("➕ הוסף", ["—"] + free_agents,
-                                           key=f"add_{day}_{shift}",
-                                           label_visibility="collapsed")
-                        if add != "—":
-                            edited_data[add][day] = shift
+                        with cols[len(agents_in)+1]:
+                            add = st.selectbox("➕", ["—"]+free_agents,
+                                               key=f"add_{day}_{shift}",
+                                               label_visibility="collapsed")
+                            if add != "—":
+                                edited_data[add][day] = shift
 
         st.divider()
         # נציג רואה
