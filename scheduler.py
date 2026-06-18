@@ -27,18 +27,35 @@ FIXED_SHIFTS = {
     "שרית": {"ראשון": "בוקר", "שני": "בוקר", "חמישי": "בוקר"},
     "ריקי": {"ראשון": "בוקר", "שני": "בוקר", "חמישי": "בוקר"},
     "אדיר": {"ראשון": "בוקר", "חמישי": "בוקר"},
+    "סימה": {"שני": "ערב", "שלישי": "ערב"},
 }
 
 FORBIDDEN_DEFAULT = {
-    "טלי":  [("שבת", "לילה"), ("ראשון", "בוקר")],
-    "ריקי": [("שבת", "בוקר"), ("שבת", "ערב"), ("שבת", "לילה"),
-              ("שלישי", "בוקר"), ("שלישי", "ערב"), ("שלישי", "לילה"),
-              ("רביעי", "בוקר"), ("רביעי", "ערב"), ("רביעי", "לילה"),
-              ("שישי", "בוקר"), ("שישי", "ערב"), ("שישי", "לילה")],
+    "טלי": [("שבת", "לילה"), ("ראשון", "בוקר")],
+    "ריקי": [
+        ("שבת", "בוקר"), ("שבת", "ערב"), ("שבת", "לילה"),
+        ("שלישי", "בוקר"), ("שלישי", "ערב"), ("שלישי", "לילה"),
+        ("רביעי", "בוקר"), ("רביעי", "ערב"), ("רביעי", "לילה"),
+        ("שישי", "בוקר"), ("שישי", "ערב"), ("שישי", "לילה"),
+    ],
+    "סימה": [
+        ("ראשון", "בוקר"), ("ראשון", "ערב"), ("ראשון", "לילה"),
+        ("חמישי", "בוקר"), ("חמישי", "ערב"), ("חמישי", "לילה"),
+        ("שישי", "בוקר"), ("שישי", "ערב"), ("שישי", "לילה"),
+        ("שבת", "בוקר"), ("שבת", "ערב"), ("שבת", "לילה"),
+        ("שני", "בוקר"), ("שני", "לילה"),
+        ("שלישי", "בוקר"), ("שלישי", "לילה"),
+        ("רביעי", "בוקר"), ("רביעי", "לילה"),
+    ],
+    "לב": [
+        ("שני", "לילה"), ("שלישי", "לילה"), ("רביעי", "לילה"),
+        ("חמישי", "לילה"), ("שישי", "לילה"), ("שבת", "לילה"),
+    ],
 }
 
-NIGHT_LOVERS   = {"לב", "איתי", "גיא", "אלינור"}
+NIGHT_LOVERS   = {"איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית"}
+NO_12_HOUR     = {"ריקי", "סימה"}
 
 AGENT_COLORS = {
     "לב":     "#FFB3B3",
@@ -51,6 +68,7 @@ AGENT_COLORS = {
     "ריקי":   "#B3FFF0",
     "אדיר":   "#FFE0B3",
     "טלי":    "#E0B3FF",
+    "סימה":   "#FFD6D6",
 }
 
 
@@ -60,6 +78,7 @@ def generate_schedule(
     is_fourth_saturday: bool = True,
     extra_forbidden: Dict = None,
     day_off: Dict = None,
+    twelve_hour: Dict = None,
 ) -> pd.DataFrame:
     names  = [a["name"] for a in agents if a.get("status", "פעיל") == "פעיל"]
     totals = {a["name"]: a["total"] for a in agents}
@@ -85,6 +104,8 @@ def generate_schedule(
         forbidden_local["ריקי"] = [
             d for d in forbidden_local.get("ריקי", []) if d[0] != "שבת"
         ]
+
+    twelve = twelve_hour or {}
 
     schedule: Dict[str, Dict[str, str]] = {n: {d: "—" for d in DAYS_ORDER} for n in names}
     assigned_count: Dict[str, int]      = {n: 0 for n in names}
@@ -120,6 +141,14 @@ def generate_schedule(
     def diversity_score(name, shift):
         return shift_type_count[name][shift]
 
+    def required_evening(day):
+        twelve_morning = sum(
+            1 for n in names
+            if schedule[n][day] == "בוקר" and twelve.get(n, False) and n not in NO_12_HOUR
+        )
+        return max(0, REQUIRED_PER_SHIFT[day]["ערב"] - twelve_morning)
+
+    # שלב 1 – משמרות קבועות
     for agent_name, fixed in FIXED_SHIFTS.items():
         if agent_name not in names:
             continue
@@ -127,13 +156,18 @@ def generate_schedule(
             if can_assign(agent_name, day, shift):
                 assign(agent_name, day, shift)
 
+    # שלב 2 – מילוי לפי דרישות
     priority_days = ["שישי", "שבת"] + ["ראשון", "שני", "שלישי", "רביעי", "חמישי"]
 
     for day in priority_days:
         for shift in SHIFTS:
-            required = REQUIRED_PER_SHIFT[day][shift]
-            already  = sum(1 for n in names if schedule[n][day] == shift)
-            needed   = required - already
+            if shift == "ערב":
+                required = required_evening(day)
+            else:
+                required = REQUIRED_PER_SHIFT[day][shift]
+
+            already = sum(1 for n in names if schedule[n][day] == shift)
+            needed  = required - already
             if needed <= 0:
                 continue
 
@@ -167,6 +201,7 @@ def generate_schedule(
                         assign(agent_name, day, shift)
                         filled += 1
 
+    # שלב 3 – השלמה למכסה
     for agent_name in names:
         if assigned_count[agent_name] >= totals[agent_name]:
             continue
