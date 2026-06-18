@@ -522,85 +522,46 @@ with tab1:
         components.html(full_html, height=560, scrolling=True)
 
         # ── גרסת הדפסה ──
-        with st.expander("🖨️ גרסת הדפסה", expanded=False):
-            print_html = f"""
-            <!DOCTYPE html>
-            <html lang="he" dir="rtl"><head>
-            <meta charset="UTF-8">
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap');
-                * {{ box-sizing: border-box; }}
-                body {{
-                    font-family:'Heebo',sans-serif; direction:rtl;
-                    margin:0; padding:10px; background:white;
-                }}
-                h1 {{ text-align:center; color:#3d3d5c; margin:0 0 8px; font-size:20px; }}
-                .week-info {{ text-align:center; color:#666; margin-bottom:15px; font-size:13px; }}
-                table {{ width:100%; border-collapse:collapse; }}
-                th {{
-                    background:#e8e4f8; color:#3d3d5c; padding:10px;
-                    font-weight:800; border:2px solid #5c4fa4;
-                    text-align:center; font-size:13px;
-                }}
-                td {{
-                    padding:10px; vertical-align:top; min-width:100px;
-                    text-align:center; border:2px solid #999;
-                    font-size:12px;
-                }}
-                .cell-morning {{
-                    background:#d4ecd4 !important; color:#064e3b !important;
-                    border-right:8px solid #10b981 !important;
-                }}
-                .cell-noon    {{
-                    background:#fde68a !important; color:#78350f !important;
-                    border-right:8px solid #f59e0b !important;
-                }}
-                .cell-night   {{
-                    background:#c4b5fd !important; color:#2e1065 !important;
-                    border-right:8px solid #8b5cf6 !important;
-                }}
-                .cell-morning b {{ color:#10b981 !important; }}
-                .cell-noon    b {{ color:#f59e0b !important; }}
-                .cell-night   b {{ color:#8b5cf6 !important; }}
-                td b {{ font-weight:800; font-size:13px; display:block; margin-bottom:4px; }}
-                td small {{ font-size:10px; opacity:0.8; display:block; margin-bottom:6px; }}
-                td span {{
-                    background:white; border:1px solid #ccc;
-                    padding:3px 7px; border-radius:6px; margin:2px;
-                    display:inline-block; font-weight:600; font-size:11px;
-                    color:#3d3d5c;
-                }}
-                .print-btn {{
-                    background:#7c6fc4; color:white; border:none;
-                    padding:10px 24px; font-size:14px; border-radius:8px;
-                    cursor:pointer; font-family:'Heebo',sans-serif; font-weight:700;
-                    margin:10px auto; display:block;
-                }}
-                @media print {{
-                    .print-btn, .no-print {{ display:none !important; }}
-                    body {{ padding:0; }}
-                    @page {{ size: landscape; margin: 1cm; }}
-                    * {{
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                        color-adjust: exact !important;
-                    }}
-                }}
-            </style></head><body>
-            <button class="print-btn" onclick="window.print()">🖨️ הדפס</button>
-            <h1>📋 סידור עבודה – מוקד 106</h1>
-            <div class="week-info">
-                {f'<b>שבוע:</b> {st.session_state.week_label}' if st.session_state.week_label else ''}
-                {f' | {st.session_state.week_notes}' if st.session_state.week_notes else ''}
-            </div>
-            <table>
-                <thead><tr>{header_html}</tr></thead>
-                <tbody>{rows_html}</tbody>
-            </table>
-            </body></html>
-            """
-            components.html(print_html, height=600, scrolling=True)
-            st.info("💡 לחץ על כפתור '🖨️ הדפס' בתוך הטבלה למעלה")
+        print_html_inner = f"""<!DOCTYPE html>
+<html lang='he' dir='rtl'><head>
+<meta charset='UTF-8'>
+<title>סידור עבודה - מוקד 106</title>
+<style>
+* {{ box-sizing: border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }}
+body {{ font-family:Arial,sans-serif; direction:rtl; margin:0; padding:15px; background:white; }}
+h1 {{ text-align:center; color:#3d3d5c; margin:0 0 8px; font-size:22px; }}
+.week-info {{ text-align:center; color:#666; margin-bottom:15px; font-size:14px; }}
+table {{ width:100%; border-collapse:collapse; }}
+th {{ background:#e8e4f8 !important; color:#3d3d5c; padding:10px; font-weight:800; border:2px solid #5c4fa4; text-align:center; font-size:14px; }}
+td {{ padding:12px; vertical-align:top; text-align:center; border:2px solid #999; font-size:13px; }}
+.cell-morning {{ background:#d4ecd4 !important; color:#064e3b; }}
+.cell-noon {{ background:#fde68a !important; color:#78350f; }}
+.cell-night {{ background:#c4b5fd !important; color:#2e1065; }}
+td b {{ font-weight:800; font-size:14px; display:block; margin-bottom:4px; }}
+td small {{ font-size:11px; display:block; margin-bottom:6px; }}
+td span {{ background:white !important; border:1px solid #999; padding:4px 8px; border-radius:6px; margin:2px; display:inline-block; font-weight:600; font-size:12px; color:#3d3d5c; }}
+.print-btn {{ background:#7c6fc4; color:white; border:none; padding:12px 30px; font-size:16px; border-radius:8px; cursor:pointer; font-weight:700; margin:15px auto; display:block; }}
+@media print {{ .print-btn {{ display:none; }} @page {{ size:landscape; margin:1cm; }} }}
+</style></head><body>
+<button class='print-btn' onclick='window.print()'>🖨️ הדפס</button>
+<h1>📋 סידור עבודה – מוקד 106</h1>
+<div class='week-info'>{f'שבוע: {st.session_state.week_label}' if st.session_state.week_label else ''} {f'| {st.session_state.week_notes}' if st.session_state.week_notes else ''}</div>
+<table>
+<thead><tr>{header_html}</tr></thead>
+<tbody>{rows_html}</tbody>
+</table>
+</body></html>"""
+
+        import json
+        js_html = json.dumps(print_html_inner)
+        components.html(f"""
+            <button onclick='var w=window.open("","_blank");w.document.write({js_html});w.document.close();'
+                    style='background:#7c6fc4;color:white;border:none;padding:12px 30px;
+                           font-size:15px;border-radius:10px;cursor:pointer;
+                           font-family:Arial,sans-serif;font-weight:700;'>
+                🖨️ פתח גרסת הדפסה בחלון חדש
+            </button>
+        """, height=70)
 
         with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
             c1, c2, c3, c4 = st.columns(4)
