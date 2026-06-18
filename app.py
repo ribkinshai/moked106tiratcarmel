@@ -326,7 +326,9 @@ with tab1:
                             if shift in ("בוקר","לילה") and ag not in NO_12_HOUR:
                                 checked = st.checkbox("⏱12ש", value=is_12,
                                                        key=f"12h_{ag}_{day}")
-                                st.session_state.twelve_hour[key_12] = checked
+                                if checked != is_12:
+                                    st.session_state.twelve_hour[key_12] = checked
+                                    st.rerun()
 
                             # שינוי נציג רואה
                             if st.button("👁 רואה", key=f"watch_{ag}_{day}_{shift}"):
