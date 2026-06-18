@@ -173,42 +173,123 @@ with tab1:
         st.markdown("### ✏️ עריכה ידנית")
         df = st.session_state.schedule_df
 
-        header_cols = st.columns([1.5] + [1]*7 + [0.8])
-        header_cols[0].markdown("**נציג**")
-        for j, day in enumerate(DAYS_ORDER):
-            header_cols[j+1].markdown(f"**{day}**")
-        header_cols[8].markdown("**12ש**")
+        # הצג טבלה כרגיל
+        header_html = "".join(f"<th>{day}</th>" for day in DAYS_ORDER)
+        rows_html   = ""
+        for shift in SHIFTS:
+            sc    = SHIFT_CLASS[shift]
+            emoji = SHIFT_EMOJI[shift]
+            hours = SHIFT_HOURS[shift]
+            rows_html += "<tr>"
+            for day in DAYS_ORDER:
+                agents_in_shift = df[df[day] == shift]["שם"].tolist()
+                cells = []
+                for ag in agents_in_shift:
+                    color = AGENT_COLORS.get(ag, "#eee")
+                    key   = f"{ag}_{day}"
+                    is_12 = st.session_state.twelve_hour.get(key, False)
+                    if is_12 and ag not in NO_12_HOUR:
+                        if shift == "בוקר":
+                            hours_display = " 07:00-19:00"
+                        elif shift == "לילה":
+                            hours_display = " 19:00-07:00"
+                        else:
+                            hours_display = ""
+                    else:
+                        hours_display = ""
+                    watcher_key   = f"{day}_{shift}"
+                    is_watcher    = st.session_state.watcher.get(watcher_key) == ag
+                    watcher_badge = " 👁" if is_watcher else ""
+                    cells.append(
+                        f"<span style='background:{color};border-radius:6px;"
+                        f"padding:3px 8px;display:inline-block;margin:2px;"
+                        f"font-size:12px;font-weight:600'>"
+                        f"{ag}{watcher_badge}{hours_display}</span>"
+                    )
+                agents_str = "<br>".join(cells) if cells else "<span style='color:#bbb'>—</span>"
+                rows_html += (
+                    f"<td class='{sc}'>"
+                    f"<b>{emoji} {shift}</b><br>"
+                    f"<small style='opacity:.7'>{hours}</small><br><br>"
+                    f"{agents_str}</td>"
+                )
+            rows_html += "</tr>"
 
-        edited_data = {}
-        for idx, row in df.iterrows():
-            agent_name = row["שם"]
-            edited_data[agent_name] = {"שם": agent_name}
-            ag_color = AGENT_COLORS.get(agent_name, "#eee")
-            cols = st.columns([1.5] + [1]*7 + [0.8])
-            cols[0].markdown(
-                f"<span style='background:{ag_color};padding:3px 8px;"
-                f"border-radius:6px;font-weight:700'>{agent_name}</span>",
-                unsafe_allow_html=True)
-            has_morning_night = False
-            for j, day in enumerate(DAYS_ORDER):
-                current_val = row[day]
-                opt_idx = SHIFT_OPTIONS.index(current_val) if current_val in SHIFT_OPTIONS else 3
-                sel = cols[j+1].selectbox("", SHIFT_OPTIONS, index=opt_idx,
-                                           key=f"edit_{agent_name}_{day}",
+        full_html = f"""
+        <html><head><style>
+            body {{ font-family:'Heebo',sans-serif; direction:rtl; margin:0; }}
+            table {{ width:100%; border-collapse:collapse; }}
+            th {{ background:#e8e4f8; color:#3d3d5c; padding:10px;
+                  text-align:center; font-size:14px; border:1px solid #ccc9e0; }}
+            td {{ padding:10px; text-align:center; border:1px solid #ddd;
+                  vertical-align:top; min-width:110px; line-height:1.8; }}
+            .cell-morning {{ background:#d4ecd4; color:#2d6a2d; }}
+            .cell-noon    {{ background:#fde8c8; color:#7a4a00; }}
+            .cell-night   {{ background:#d9d4f0; color:#3a2070; }}
+            small {{ font-size:11px; }}
+        </style></head><body>
+        <table>
+            <thead><tr>{header_html}</tr></thead>
+            <tbody>{rows_html}</tbody>
+        </table>
+        </body></html>
+        """
+        components.html(full_html, height=440, scrolling=True)
+
+        # ── לוח עריכה ──
+        st.markdown("---")
+        st.markdown("### 🔧 עריכת משמרות")
+
+        edited_data = {row["שם"]: dict(row) for _, row in df.iterrows()}
+
+        for shift in SHIFTS:
+            emoji = SHIFT_EMOJI[shift]
+            st.markdown(f"#### {emoji} {shift}")
+            for day in DAYS_ORDER:
+                agents_in = df[df[day] == shift]["שם"].tolist()
+                if not agents_in:
+                    continue
+                all_agents = [a["name"] for a in st.session_state.agents
+                              if a.get("status","פעיל") == "פעיל"]
+
+                st.markdown(f"**{day}**")
+                cols = st.columns(len(agents_in) + 1)
+
+                for i, ag in enumerate(agents_in):
+                    with cols[i]:
+                        # dropdown להחלפת נציג
+                        options = [ag] + [n for n in all_agents if n != ag and
+                                          df[df["שם"]==n][day].values[0] == "—"]
+                        selected = st.selectbox("", options, key=f"sel_{ag}_{day}_{shift}",
+                                                label_visibility="collapsed")
+                        if selected != ag:
+                            edited_data[ag][day] = "—"
+                            edited_data[selected][day] = shift
+
+                        # צ'קבוקס 12 שעות
+                        if shift in ("בוקר", "לילה") and ag not in NO_12_HOUR:
+                            key = f"{ag}_{day}"
+                            is_12 = st.session_state.twelve_hour.get(key, False)
+                            checked = st.checkbox("12ש", value=is_12, key=f"12h_{ag}_{day}")
+                            st.session_state.twelve_hour[key] = checked
+                            if checked:
+                                hours_label = "07:00-19:00" if shift == "בוקר" else "19:00-07:00"
+                                st.markdown(f"<small style='color:#888'>{hours_label}</small>",
+                                            unsafe_allow_html=True)
+
+                # כפתור הוספת נציג
+                with cols[len(agents_in)]:
+                    free_agents = [n for n in all_agents
+                                   if df[df["שם"]==n][day].values[0] == "—"]
+                    if free_agents:
+                        add = st.selectbox("➕ הוסף", ["—"] + free_agents,
+                                           key=f"add_{day}_{shift}",
                                            label_visibility="collapsed")
-                edited_data[agent_name][day] = sel
-                if sel in ("בוקר", "לילה"):
-                    has_morning_night = True
-
-            can_12 = agent_name not in NO_12_HOUR and has_morning_night
-            if can_12:
-                tw = cols[8].checkbox("", value=st.session_state.twelve_hour.get(agent_name, False),
-                                       key=f"12h_{agent_name}")
-                st.session_state.twelve_hour[agent_name] = tw
-            else:
-                cols[8].markdown("—")
+                        if add != "—":
+                            edited_data[add][day] = shift
 
         st.divider()
+        # נציג רואה
         st.markdown("### 👁 נציג רואה")
         for shift in SHIFTS:
             st.markdown(f"**{SHIFT_EMOJI[shift]} {shift}**")
@@ -223,9 +304,14 @@ with tab1:
                 st.session_state.watcher[key] = chosen
 
         if st.button("💾 שמור שינויים", type="primary"):
-            new_df = pd.DataFrame(list(edited_data.values()))
-            new_df["סה״כ"] = new_df[DAYS_ORDER].apply(
-                lambda r: sum(1 for v in r if v != "—"), axis=1)
+            new_rows = []
+            for ag in [a["name"] for a in st.session_state.agents
+                       if a.get("status","פעיל") == "פעיל"]:
+                if ag in edited_data:
+                    row = edited_data[ag]
+                    row["סה״כ"] = sum(1 for d in DAYS_ORDER if row.get(d,"—") != "—")
+                    new_rows.append(row)
+            new_df = pd.DataFrame(new_rows)
             st.session_state.schedule_df = new_df
             st.session_state.edit_mode   = False
             st.success("נשמר! ✅")
