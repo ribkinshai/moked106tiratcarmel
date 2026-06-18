@@ -584,7 +584,6 @@ with tab1:
             """
             components.html(print_html, height=600, scrolling=True)
             st.info("💡 לחץ על כפתור '🖨️ הדפס' בתוך הטבלה למעלה")
-        )
 
         with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
             c1, c2, c3, c4 = st.columns(4)
