@@ -552,7 +552,7 @@ td span {{ background:white !important; border:1px solid #999; padding:4px 8px; 
 </table>
 </body></html>"""
 
-       st.download_button(
+        st.download_button(
             label="🖨️ הורד גרסת הדפסה (HTML)",
             data=print_html_inner.encode("utf-8"),
             file_name=f"sidur_print_{st.session_state.week_label or 'export'}.html",
