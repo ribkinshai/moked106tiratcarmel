@@ -127,7 +127,7 @@ def generate_schedule(
         ]
 
     twelve = twelve_hour or {}
-pref = pref_days or {}
+        pref = pref_days or {}
 
     def pref_score(name, day, shift):
         days_pref = pref.get(name, {}).get(shift, [])
