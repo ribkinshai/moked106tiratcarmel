@@ -193,7 +193,7 @@ with tab1:
                     twelve_count = sum(
                         1 for n in df["שם"].tolist()
                         if df[df["שם"]==n][day].values[0] == "בוקר"
-                        and st.session_state.twelve_hour.get(n, False)
+                        and st.session_state.twelve_hour.get(f"{n}_{day}", False)
                         and n not in NO_12_HOUR
                     )
                     required = max(0, required - twelve_count)
