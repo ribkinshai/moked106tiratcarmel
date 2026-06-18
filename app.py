@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-from scheduler import generate_schedule
+from scheduler import generate_schedule, build_shift_table, SHIFT_HOURS
 
-# ─── Page Config ────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="סידור עבודה – מוקד 106",
     page_icon="📋",
@@ -10,55 +9,37 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ─── Custom CSS ──────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700&display=swap');
-
-    html, body, [class*="css"] {
-        font-family: 'Heebo', sans-serif;
-        direction: rtl;
-    }
+    html, body, [class*="css"] { font-family: 'Heebo', sans-serif; direction: rtl; }
     .main { background-color: #f8f9fc; }
     h1, h2, h3 { color: #3d3d5c; }
 
-    .badge {
-        display: inline-block;
-        padding: 3px 12px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        margin: 2px;
-    }
-    .badge-morning  { background:#d4ecd4; color:#2d6a2d; }
-    .badge-noon     { background:#fde8c8; color:#7a4a00; }
-    .badge-night    { background:#d9d4f0; color:#3a2070; }
-    .badge-off      { background:#e8e8e8; color:#666; }
+    .badge { display:inline-block; padding:3px 12px; border-radius:20px; font-size:13px; font-weight:600; margin:2px; }
+    .badge-morning { background:#d4ecd4; color:#2d6a2d; }
+    .badge-noon    { background:#fde8c8; color:#7a4a00; }
+    .badge-night   { background:#d9d4f0; color:#3a2070; }
+    .badge-off     { background:#e8e8e8; color:#666; }
 
     .schedule-table { width:100%; border-collapse:collapse; direction:rtl; }
     .schedule-table th {
-        background:#e8e4f8;
-        color:#3d3d5c;
-        padding:10px 8px;
-        text-align:center;
-        font-weight:700;
-        font-size:14px;
-        border:1px solid #ccc9e0;
+        background:#e8e4f8; color:#3d3d5c; padding:10px 8px;
+        text-align:center; font-weight:700; font-size:14px; border:1px solid #ccc9e0;
     }
     .schedule-table td {
-        padding:8px 6px;
-        text-align:center;
-        border:1px solid #ddd;
-        font-size:13px;
+        padding:8px 6px; text-align:center; border:1px solid #ddd; font-size:13px;
     }
     .schedule-table tr:nth-child(even) td { background:#fafafa; }
     .schedule-table tr:hover td { background:#f0eeff; }
+
+    .cell-day     { background:#edeaf8 !important; font-weight:700; color:#3d3d5c; font-size:15px; }
     .cell-morning { background:#d4ecd4 !important; color:#2d6a2d; font-weight:600; }
     .cell-noon    { background:#fde8c8 !important; color:#7a4a00; font-weight:600; }
     .cell-night   { background:#d9d4f0 !important; color:#3a2070; font-weight:600; }
-    .cell-off     { background:#f0f0f0 !important; color:#999; }
-    .cell-name    { background:#edeaf8 !important; font-weight:700; color:#3d3d5c; text-align:right !important; padding-right:12px !important; }
-    .cell-total   { background:#fff8e0 !important; font-weight:700; color:#7a4a00; }
+    .cell-shift   { font-weight:700; font-size:13px; white-space:pre-line; }
+    .cell-agent   { background:#ffffff !important; }
+    .cell-empty   { background:#f5f5f5 !important; color:#ccc; }
 
     div[data-testid="stSidebar"] { background:#edeaf8; }
     .stButton > button {
@@ -69,16 +50,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Session State Init ──────────────────────────────────────────────────────
+# ─── Session State ────────────────────────────────────────────────────────────
 if "agents" not in st.session_state:
     st.session_state.agents = [
         {"name": "לב",     "total": 5, "pref": "לילה"},
         {"name": "איתי",   "total": 5, "pref": "לילה"},
         {"name": "גיא",    "total": 5, "pref": "לילה"},
         {"name": "אלינור", "total": 5, "pref": "לילה"},
-        {"name": "שרית",   "total": 5, "pref": "בוקר/צהריים"},
-        {"name": "רונית",  "total": 5, "pref": "בוקר/צהריים"},
-        {"name": "שני",    "total": 5, "pref": "בוקר/צהריים"},
+        {"name": "שרית",   "total": 5, "pref": "בוקר/ערב"},
+        {"name": "רונית",  "total": 5, "pref": "בוקר/ערב"},
+        {"name": "שני",    "total": 5, "pref": "בוקר/ערב"},
         {"name": "נציג 8", "total": 4, "pref": "ללא העדפה"},
         {"name": "נציג 9", "total": 4, "pref": "ללא העדפה"},
         {"name": "נציג 10","total": 4, "pref": "ללא העדפה"},
@@ -91,26 +72,25 @@ if "edit_mode" not in st.session_state:
     st.session_state.edit_mode = False
 
 DAYS_ORDER    = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"]
-SHIFT_OPTIONS = ["בוקר", "צהריים", "לילה", "—"]
-PREF_OPTIONS  = ["לילה", "בוקר/צהריים", "ללא העדפה"]
+SHIFTS        = ["בוקר", "ערב", "לילה"]
+SHIFT_OPTIONS = ["בוקר", "ערב", "לילה", "—"]
+PREF_OPTIONS  = ["לילה", "בוקר/ערב", "ללא העדפה"]
 
-SHIFT_LABEL = {"בוקר": "☀️ בוקר", "צהריים": "🌤 צהריים", "לילה": "🌙 לילה", "—": "—"}
-SHIFT_CLASS = {"בוקר": "cell-morning", "צהריים": "cell-noon", "לילה": "cell-night", "—": "cell-off"}
+SHIFT_CLASS = {"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}
+SHIFT_EMOJI = {"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}
 
-# ─── Sidebar ─────────────────────────────────────────────────────────────────
+# ─── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 👥 ניהול נציגים")
-
     updated_agents = []
     for i, agent in enumerate(st.session_state.agents):
         with st.expander(f"✏️ {agent['name']}", expanded=False):
-            name  = st.text_input("שם",    value=agent["name"],  key=f"name_{i}")
+            name  = st.text_input("שם", value=agent["name"], key=f"name_{i}")
             total = st.number_input("מכסה שבועית", min_value=1, max_value=7,
                                     value=agent["total"], key=f"total_{i}")
             pref  = st.selectbox("העדפת משמרת", PREF_OPTIONS,
                                   index=PREF_OPTIONS.index(agent["pref"]), key=f"pref_{i}")
             updated_agents.append({"name": name, "total": total, "pref": pref})
-
     st.session_state.agents = updated_agents
 
     st.divider()
@@ -118,7 +98,6 @@ with st.sidebar:
         st.session_state.agents.append({"name": f"נציג {len(st.session_state.agents)+1}",
                                          "total": 4, "pref": "ללא העדפה"})
         st.rerun()
-
     if len(st.session_state.agents) > 1:
         if st.button("🗑 הסר נציג אחרון"):
             st.session_state.agents.pop()
@@ -127,18 +106,17 @@ with st.sidebar:
     st.divider()
     st.markdown("**מקרא צבעים:**")
     st.markdown("""
-    <span class='badge badge-morning'>☀️ בוקר</span>
-    <span class='badge badge-noon'>🌤 צהריים</span>
-    <span class='badge badge-night'>🌙 לילה</span>
-    <span class='badge badge-off'>— חופש</span>
+    <span class='badge badge-morning'>☀️ בוקר 07:00-15:00</span><br>
+    <span class='badge badge-noon'>🌤 ערב 15:00-23:00</span><br>
+    <span class='badge badge-night'>🌙 לילה 23:00-07:00</span>
     """, unsafe_allow_html=True)
 
-# ─── Main Area ────────────────────────────────────────────────────────────────
+# ─── Main ─────────────────────────────────────────────────────────────────────
 st.markdown("<h1 style='text-align:right'>📋 סידור עבודה – מוקד 106</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:right; color:#888;'>שיבוץ אוטומטי חכם עם עריכה ידנית</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:right; color:#888;'>שיבוץ אוטומטי חכם עם עריכה ידנית</p>",
+            unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns([2, 1, 1])
-
 with col1:
     if st.button("⚡ צור סידור אוטומטי", use_container_width=True):
         with st.spinner("מחשב סידור אופטימלי..."):
@@ -159,7 +137,7 @@ with col3:
             st.session_state.edit_mode = False
             st.rerun()
 
-# ─── Schedule Display ─────────────────────────────────────────────────────────
+# ─── Display ──────────────────────────────────────────────────────────────────
 if st.session_state.schedule_df is not None:
     df = st.session_state.schedule_df
 
@@ -194,24 +172,43 @@ if st.session_state.schedule_df is not None:
             st.rerun()
 
     else:
-        st.markdown("### 📅 סידור השבוע")
-        df_display = st.session_state.schedule_df
+        st.markdown("### 📅 סידור השבוע לפי משמרות")
 
-        header_cols = ["שם"] + DAYS_ORDER + ["סה״כ"]
-        header_html = "".join(f"<th>{c}</th>" for c in header_cols)
+        # בניית טבלה לפי ימים ומשמרות
+        # עמודות: יום | משמרת + שעות | נציג 1 | נציג 2 | נציג 3
+        max_agents = 3  # מקסימום נציגים במשמרת
+
+        header_html = "<th>יום</th><th>משמרת</th>"
+        for i in range(1, max_agents + 1):
+            header_html += f"<th>נציג {i}</th>"
 
         rows_html = ""
-        for _, row in df_display.iterrows():
-            rows_html += "<tr>"
-            rows_html += f"<td class='cell-name'>{row['שם']}</td>"
-            for day in DAYS_ORDER:
-                val = row[day]
-                css = SHIFT_CLASS.get(val, "cell-off")
-                label = SHIFT_LABEL.get(val, val)
-                rows_html += f"<td class='{css}'>{label}</td>"
-            total = row.get("סה״כ", "")
-            rows_html += f"<td class='cell-total'>{total}</td>"
-            rows_html += "</tr>"
+        for day in DAYS_ORDER:
+            first_shift = True
+            for shift in SHIFTS:
+                shift_class = SHIFT_CLASS[shift]
+                emoji = SHIFT_EMOJI[shift]
+                hours = SHIFT_HOURS[shift]
+                agents_in_shift = df[df[day] == shift]["שם"].tolist()
+
+                rows_html += "<tr>"
+
+                # עמודת יום – מוצגת רק בשורה הראשונה של כל יום
+                if first_shift:
+                    rows_html += f"<td class='cell-day' rowspan='3'>{day}</td>"
+                    first_shift = False
+
+                # עמודת משמרת
+                rows_html += f"<td class='{shift_class} cell-shift'>{emoji} {shift}<br><small>{hours}</small></td>"
+
+                # עמודות נציגים
+                for i in range(max_agents):
+                    if i < len(agents_in_shift):
+                        rows_html += f"<td class='cell-agent'>{agents_in_shift[i]}</td>"
+                    else:
+                        rows_html += "<td class='cell-empty'>—</td>"
+
+                rows_html += "</tr>"
 
         table_html = f"""
         <div style='overflow-x:auto; direction:rtl;'>
@@ -223,10 +220,11 @@ if st.session_state.schedule_df is not None:
         """
         st.markdown(table_html, unsafe_allow_html=True)
 
+        # סיכום נציגים
         st.divider()
-        st.markdown("### 📊 סיכום משמרות")
+        st.markdown("### 📊 סיכום משמרות לנציג")
         summary_cols = st.columns(len(st.session_state.agents))
-        for i, (_, row) in enumerate(df_display.iterrows()):
+        for i, (_, row) in enumerate(df.iterrows()):
             agent_total = next((a["total"] for a in st.session_state.agents if a["name"] == row["שם"]), 0)
             filled = row.get("סה״כ", 0)
             with summary_cols[i]:
