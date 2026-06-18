@@ -185,7 +185,9 @@ def generate_schedule(
     def required_evening(day):
         twelve_morning = sum(
             1 for n in names
-            if schedule[n][day] == "בוקר" and twelve.get(n, False) and n not in NO_12_HOUR
+            if schedule[n][day] == "בוקר"
+            and twelve.get(f"{n}_{day}", False)
+            and n not in NO_12_HOUR
         )
         return max(0, REQUIRED_PER_SHIFT[day]["ערב"] - twelve_morning)
 
