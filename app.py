@@ -118,12 +118,21 @@ with tab1:
     with col1:
         if st.button("⚡ צור סידור אוטומטי", use_container_width=True):
             day_off_map = {a["name"]: a.get("day_off",[]) for a in st.session_state.agents}
+            pref_map = {
+                a["name"]: {
+                    "בוקר": a.get("pref_morning", []),
+                    "ערב":  a.get("pref_evening", []),
+                    "לילה": a.get("pref_night",   []),
+                }
+                for a in st.session_state.agents
+            }
             with st.spinner("מחשב סידור..."):
                 df = generate_schedule(
                     st.session_state.agents, DAYS_ORDER,
                     is_fourth_saturday=st.session_state.fourth_saturday,
                     day_off=day_off_map,
                     twelve_hour=st.session_state.twelve_hour,
+                    pref_days=pref_map,
                 )
                 st.session_state.schedule_df = df
                 st.session_state.edit_mode   = False
