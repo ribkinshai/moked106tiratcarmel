@@ -520,7 +520,6 @@ with tab1:
         </body></html>
         """
         components.html(full_html, height=560, scrolling=True)
-components.html(full_html, height=560, scrolling=True)
 
         # ── גרסת הדפסה ──
         print_html = f"""
