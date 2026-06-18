@@ -242,15 +242,26 @@ with tab1:
         all_agents  = [a["name"] for a in st.session_state.agents
                        if a.get("status","פעיל") == "פעיל"]
 
+        # נציג רואה אוטומטי – הראשון בכל משמרת
+        for day in DAYS_ORDER:
+            for shift in SHIFTS:
+                key = f"{day}_{shift}"
+                agents_in = df[df[day] == shift]["שם"].tolist()
+                if agents_in and st.session_state.watcher.get(key, "—") == "—":
+                    st.session_state.watcher[key] = agents_in[0]
+
         for day in DAYS_ORDER:
             with st.expander(f"📅 {day}", expanded=True):
                 for shift in SHIFTS:
-                    emoji       = SHIFT_EMOJI[shift]
-                    agents_in   = df[df[day] == shift]["שם"].tolist()
+                    emoji     = SHIFT_EMOJI[shift]
+                    agents_in = df[df[day] == shift]["שם"].tolist()
                     free_agents = [n for n in all_agents
                                    if edited_data[n].get(day,"—") == "—"]
 
-                    cols = st.columns([0.8] + [1]*max(len(agents_in)+1, 1))
+                    watcher_key     = f"{day}_{shift}"
+                    current_watcher = st.session_state.watcher.get(watcher_key, "—")
+
+                    cols = st.columns([0.8] + [1.2]*max(len(agents_in), 1) + [0.8])
                     cols[0].markdown(
                         f"<div style='padding-top:8px;font-weight:700;"
                         f"font-size:13px'>{emoji} {shift}</div>",
@@ -258,21 +269,41 @@ with tab1:
 
                     for i, ag in enumerate(agents_in):
                         with cols[i+1]:
-                            ag_color = AGENT_COLORS.get(ag, "#eee")
+                            ag_color    = AGENT_COLORS.get(ag, "#eee")
+                            is_watcher  = (current_watcher == ag)
+                            watcher_tag = " 👁" if is_watcher else ""
+
+                            st.markdown(
+                                f"<div style='background:{ag_color};border-radius:6px;"
+                                f"padding:2px 6px;text-align:center;font-size:12px;"
+                                f"font-weight:700'>{ag}{watcher_tag}</div>",
+                                unsafe_allow_html=True)
+
+                            # dropdown להחלפה
                             options  = [ag] + [n for n in free_agents if n != ag]
-                            selected = st.selectbox("",options,
+                            selected = st.selectbox("", options,
                                                      key=f"sel_{ag}_{day}_{shift}",
                                                      label_visibility="collapsed")
                             if selected != ag:
                                 edited_data[ag][day]       = "—"
                                 edited_data[selected][day] = shift
 
+                            # כפתור הסרה
+                            if st.button("✖", key=f"remove_{ag}_{day}_{shift}",
+                                         help=f"הסר {ag} מ{shift} {day}"):
+                                edited_data[ag][day] = "—"
+                                if current_watcher == ag:
+                                    remaining = [a for a in agents_in if a != ag]
+                                    st.session_state.watcher[watcher_key] = remaining[0] if remaining else "—"
+                                st.rerun()
+
+                            # 12 שעות
                             if shift in ("בוקר","לילה") and ag not in NO_12_HOUR:
-                                key    = f"{ag}_{day}"
-                                is_12  = st.session_state.twelve_hour.get(key, False)
+                                key_12  = f"{ag}_{day}"
+                                is_12   = st.session_state.twelve_hour.get(key_12, False)
                                 checked = st.checkbox("⏱12ש", value=is_12,
                                                        key=f"12h_{ag}_{day}")
-                                st.session_state.twelve_hour[key] = checked
+                                st.session_state.twelve_hour[key_12] = checked
                                 if checked:
                                     label = "07:00-19:00" if shift=="בוקר" else "19:00-07:00"
                                     st.markdown(
@@ -280,34 +311,25 @@ with tab1:
                                         f"font-weight:700'>{label}</div>",
                                         unsafe_allow_html=True)
 
-                    # כפתור הוספה
-                    if free_agents:
-                        with cols[len(agents_in)+1]:
+                            # שינוי נציג רואה
+                            if st.button("👁 רואה", key=f"watch_{ag}_{day}_{shift}"):
+                                st.session_state.watcher[watcher_key] = ag
+                                st.rerun()
+
+                    # הוספת נציג
+                    with cols[len(agents_in)+1]:
+                        if free_agents:
                             add = st.selectbox("➕", ["—"]+free_agents,
                                                key=f"add_{day}_{shift}",
                                                label_visibility="collapsed")
                             if add != "—":
                                 edited_data[add][day] = shift
+                                st.rerun()
 
         st.divider()
-        # נציג רואה
-        st.markdown("### 👁 נציג רואה")
-        for shift in SHIFTS:
-            st.markdown(f"**{SHIFT_EMOJI[shift]} {shift}**")
-            watch_cols = st.columns(7)
-            for j, day in enumerate(DAYS_ORDER):
-                key       = f"{day}_{shift}"
-                agents_in = ["—"] + df[df[day] == shift]["שם"].tolist()
-                current   = st.session_state.watcher.get(key, "—")
-                idx_val   = agents_in.index(current) if current in agents_in else 0
-                chosen    = watch_cols[j].selectbox(day, agents_in, index=idx_val,
-                                                     key=f"watch_{key}")
-                st.session_state.watcher[key] = chosen
-
         if st.button("💾 שמור שינויים", type="primary"):
             new_rows = []
-            for ag in [a["name"] for a in st.session_state.agents
-                       if a.get("status","פעיל") == "פעיל"]:
+            for ag in all_agents:
                 if ag in edited_data:
                     row = edited_data[ag]
                     row["סה״כ"] = sum(1 for d in DAYS_ORDER if row.get(d,"—") != "—")
