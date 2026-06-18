@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 from scheduler import generate_schedule, AGENT_COLORS, SHIFT_HOURS, DAYS_ORDER, SHIFTS
 from archive import load_archive, save_to_archive, delete_from_archive, archive_to_df
@@ -389,8 +391,9 @@ with tab2:
                     if shift in stats[name]:
                         stats[name][shift] += 1
 
-        fig = go.Figure()
-        colors = {"בוקר": "#d4ecd4", "ערב": "#fde8c8", "לילה": "#d9d4f0"}
+        chart_data = pd.DataFrame(stats).T
+        chart_data.index.name = "נציג"
+        st.bar_chart(chart_data)
 
         for shift in SHIFTS:
             fig.add_trace(go.Bar(
