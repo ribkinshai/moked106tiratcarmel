@@ -39,7 +39,6 @@ FORBIDDEN = {
 NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית"}  # פיזור מגוון
 
-
 def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: bool = True) -> pd.DataFrame:
     names  = [a["name"]  for a in agents]
     totals = {a["name"]: a["total"] for a in agents}
