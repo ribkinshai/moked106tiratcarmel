@@ -568,6 +568,11 @@ with tab1:
                     .print-btn, .no-print {{ display:none !important; }}
                     body {{ padding:0; }}
                     @page {{ size: landscape; margin: 1cm; }}
+                    * {{
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }}
                 }}
             </style></head><body>
             <button class="print-btn" onclick="window.print()">🖨️ הדפס</button>
