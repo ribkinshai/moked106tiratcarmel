@@ -170,6 +170,8 @@ if st.session_state.schedule_df is not None:
         st.markdown("### 📅 סידור השבוע")
 
         # כותרות – ימים
+        import streamlit.components.v1 as components
+
         header_html = "".join(f"<th>{day}</th>" for day in DAYS_ORDER)
 
         rows_html = ""
@@ -177,29 +179,30 @@ if st.session_state.schedule_df is not None:
             shift_class = SHIFT_CLASS[shift]
             emoji = SHIFT_EMOJI[shift]
             hours = SHIFT_HOURS[shift]
-
             rows_html += "<tr>"
             for day in DAYS_ORDER:
                 agents_in_shift = df[df[day] == shift]["שם"].tolist()
                 agents_str = "<br>".join(agents_in_shift) if agents_in_shift else "—"
-                rows_html += f"""
-                <td class='{shift_class}'>
-                    <div style='font-weight:700; margin-bottom:4px;'>{emoji} {shift}</div>
-                    <div style='font-size:11px; margin-bottom:6px; opacity:0.8;'>{hours}</div>
-                    <div style='font-size:13px; line-height:1.8;'>{agents_str}</div>
-                </td>
-                """
+                rows_html += f"<td class='{shift_class}'><b>{emoji} {shift}</b><br><small>{hours}</small><br>{agents_str}</td>"
             rows_html += "</tr>"
 
-        table_html = f"""
-        <div style='overflow-x:auto; direction:rtl;'>
-        <table class='schedule-table'>
+        full_html = f"""
+        <html><head><style>
+            body {{ font-family: 'Heebo', sans-serif; direction: rtl; }}
+            table {{ width:100%; border-collapse:collapse; }}
+            th {{ background:#e8e4f8; color:#3d3d5c; padding:10px; text-align:center; font-size:15px; border:1px solid #ccc9e0; }}
+            td {{ padding:10px; text-align:center; border:1px solid #ddd; vertical-align:top; min-width:100px; line-height:1.8; }}
+            .cell-morning {{ background:#d4ecd4; color:#2d6a2d; }}
+            .cell-noon    {{ background:#fde8c8; color:#7a4a00; }}
+            .cell-night   {{ background:#d9d4f0; color:#3a2070; }}
+        </style></head><body>
+        <table>
             <thead><tr>{header_html}</tr></thead>
             <tbody>{rows_html}</tbody>
         </table>
-        </div>
+        </body></html>
         """
-        st.markdown(table_html, unsafe_allow_html=True)
+        components.html(full_html, height=350, scrolling=True)
 
         # ── סיכום נציגים ──
         st.divider()
