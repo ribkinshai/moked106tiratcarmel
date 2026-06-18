@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime, timedelta
 import pandas as pd
 import streamlit.components.v1 as components
 from scheduler import generate_schedule, AGENT_COLORS, SHIFT_HOURS, DAYS_ORDER, SHIFTS, NO_12_HOUR
@@ -66,6 +67,14 @@ if "loaded" not in st.session_state:
         st.session_state.cell_notes  = saved.get("cell_notes", {})
         st.session_state.week_label  = saved.get("week_label", "")
         st.session_state.week_notes  = saved.get("week_notes", "")
+def get_next_week_label():
+    today = datetime.now()
+    days_until_sunday = (6 - today.weekday()) % 7
+    if days_until_sunday == 0:
+        days_until_sunday = 7
+    next_sunday = today + timedelta(days=days_until_sunday)
+    next_saturday = next_sunday + timedelta(days=6)
+    return f"{next_sunday.day}-{next_saturday.day}/{next_saturday.month}"
 SHIFT_CLASS  = {"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}
 SHIFT_EMOJI  = {"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}
 STATUS_OPTIONS = ["פעיל", "חופשה", "מחלה"]
@@ -119,8 +128,13 @@ with st.sidebar:
 tab1, tab2, tab3 = st.tabs(["📋 סידור", "📊 סטטיסטיקות", "🗂 ארכיון"])
 
 with tab1:
-    st.markdown("<h1 style='text-align:right'>📋 סידור עבודה – מוקד 106</h1>",
-                unsafe_allow_html=True)
+    next_week = get_next_week_label()
+    st.markdown(f"""
+        <div style='text-align:center; padding:10px 0;'>
+            <h1 style='margin:0; color:#3d3d5c; font-weight:800;'>📋 מוקד 106 - סידור עבודה שבועי</h1>
+            <h3 style='margin:5px 0 0; color:#7c6fc4; font-weight:600;'>📅 {next_week}</h3>
+        </div>
+    """, unsafe_allow_html=True)
     if st.session_state.week_label:
         st.markdown(f"**שבוע:** {st.session_state.week_label}")
     if st.session_state.week_notes:
