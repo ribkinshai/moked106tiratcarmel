@@ -273,10 +273,19 @@ with tab1:
                             is_watcher  = (current_watcher == ag)
                             watcher_tag = " 👁" if is_watcher else ""
 
+                            # שם נציג
+                            key_12     = f"{ag}_{day}"
+                            is_12      = st.session_state.twelve_hour.get(key_12, False)
+                            hours_tag  = ""
+                            if is_12 and shift in ("בוקר","לילה") and ag not in NO_12_HOUR:
+                                hours_tag = " 07:00-19:00" if shift=="בוקר" else " 19:00-07:00"
+
                             st.markdown(
                                 f"<div style='background:{ag_color};border-radius:6px;"
                                 f"padding:2px 6px;text-align:center;font-size:12px;"
-                                f"font-weight:700'>{ag}{watcher_tag}</div>",
+                                f"font-weight:700'>{ag}{watcher_tag}"
+                                f"<br><span style='font-size:10px;color:#555;font-weight:400'>"
+                                f"{hours_tag}</span></div>",
                                 unsafe_allow_html=True)
 
                             # dropdown להחלפה
@@ -306,17 +315,9 @@ with tab1:
 
                             # 12 שעות
                             if shift in ("בוקר","לילה") and ag not in NO_12_HOUR:
-                                key_12  = f"{ag}_{day}"
-                                is_12   = st.session_state.twelve_hour.get(key_12, False)
                                 checked = st.checkbox("⏱12ש", value=is_12,
                                                        key=f"12h_{ag}_{day}")
                                 st.session_state.twelve_hour[key_12] = checked
-                                if checked:
-                                    label = "07:00-19:00" if shift=="בוקר" else "19:00-07:00"
-                                    st.markdown(
-                                        f"<div style='font-size:11px;color:#7c6fc4;"
-                                        f"font-weight:700'>{label}</div>",
-                                        unsafe_allow_html=True)
 
                             # שינוי נציג רואה
                             if st.button("👁 רואה", key=f"watch_{ag}_{day}_{shift}"):
