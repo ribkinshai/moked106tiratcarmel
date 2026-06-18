@@ -295,6 +295,13 @@ with tab1:
                                 if current_watcher == ag:
                                     remaining = [a for a in agents_in if a != ag]
                                     st.session_state.watcher[watcher_key] = remaining[0] if remaining else "—"
+                                new_rows = []
+                                for a in all_agents:
+                                    if a in edited_data:
+                                        row = edited_data[a]
+                                        row["סה״כ"] = sum(1 for d in DAYS_ORDER if row.get(d,"—") != "—")
+                                        new_rows.append(row)
+                                st.session_state.schedule_df = pd.DataFrame(new_rows)
                                 st.rerun()
 
                             # 12 שעות
