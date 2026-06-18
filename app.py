@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-from scheduler import generate_schedule, build_shift_table, SHIFT_HOURS
+from scheduler import generate_schedule
+from scheduler import SHIFT_HOURS
 
 st.set_page_config(
     page_title="סידור עבודה – מוקד 106",
