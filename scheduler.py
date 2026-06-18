@@ -102,6 +102,24 @@ def generate_schedule(
         return any(fd == day and fs == shift for (fd, fs) in forbidden_local.get(name, []))
 
     def can_assign(name, day, shift):
+        def can_assign(name, day, shift):
+        if assigned_count[name] >= totals[name]:
+            return False
+        if schedule[name][day] != "—":
+            return False
+        if is_forbidden(name, day, shift):
+            return False
+        day_idx = DAYS_ORDER.index(day)
+        # אסור בוקר אחרי לילה
+        if shift == "בוקר" and day_idx > 0:
+            if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
+                return False
+        # אסור לעבוד שישי ושבת באותו שבוע
+        if day == "שישי" and schedule[name]["שבת"] != "—":
+            return False
+        if day == "שבת" and schedule[name]["שישי"] != "—":
+            return False
+        return True
         if assigned_count[name] >= totals[name]:
             return False
         if schedule[name][day] != "—":
