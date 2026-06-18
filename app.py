@@ -558,7 +558,7 @@ td span {{ background:white !important; border:1px solid #999; padding:4px 8px; 
             file_name=f"sidur_print_{st.session_state.week_label or 'export'}.html",
             mime="text/html",
         )
-        st.caption("💡 לאחר הורדה – פתח את הקובץ בדפדפן ולחץ הדפס. הצבעים יודפסו!"))
+        st.caption("💡 לאחר הורדה – פתח את הקובץ בדפדפן ולחץ הדפס. הצבעים יודפסו!")
 
         with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
             c1, c2, c3, c4 = st.columns(4)
