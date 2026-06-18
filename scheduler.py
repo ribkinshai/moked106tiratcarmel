@@ -23,6 +23,7 @@ REQUIRED_PER_SHIFT = {
     "שבת":    {"בוקר": 2, "ערב": 2, "לילה": 2},
 }
 
+# משמרות קבועות – לא נספרות מחדש בשלב 2
 FIXED_SHIFTS = {
     "שרית": {"ראשון": "בוקר", "שני": "בוקר", "חמישי": "בוקר"},
     "ריקי": {"ראשון": "בוקר", "שני": "בוקר", "חמישי": "בוקר"},
@@ -127,10 +128,25 @@ def generate_schedule(
         if shift == "בוקר" and day_idx > 0:
             if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
                 return False
+        # חוק שישי/שבת – עדיפות, לא חובה מוחלטת
         if day == "שישי" and schedule[name]["שבת"] != "—":
             return False
         if day == "שבת" and schedule[name]["שישי"] != "—":
             return False
+        return True
+
+    def can_assign_relaxed(name, day, shift):
+        """ללא חוק שישי/שבת – לשימוש בשלב השלמה"""
+        if assigned_count[name] >= totals[name]:
+            return False
+        if schedule[name][day] != "—":
+            return False
+        if is_forbidden(name, day, shift):
+            return False
+        day_idx = DAYS_ORDER.index(day)
+        if shift == "בוקר" and day_idx > 0:
+            if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
+                return False
         return True
 
     def assign(name, day, shift):
@@ -148,60 +164,76 @@ def generate_schedule(
         )
         return max(0, REQUIRED_PER_SHIFT[day]["ערב"] - twelve_morning)
 
-    # שלב 1 – משמרות קבועות
+    def fill_shift(day, shift, needed, use_relaxed=False):
+        """ממלא משמרת עד הכמות הנדרשת"""
+        if shift == "לילה":
+            primary = [n for n in names if n in NIGHT_LOVERS]
+        elif shift == "בוקר":
+            primary = [n for n in names if n not in NIGHT_LOVERS and n not in DIVERSE_AGENTS]
+        else:
+            primary = [n for n in names if n not in NIGHT_LOVERS]
+
+        def sort_key(n):
+            base = 0 if n in primary else 1
+            div  = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
+            return (base, div, assigned_count[n])
+
+        ordered = sorted(names, key=sort_key)
+        check   = can_assign_relaxed if use_relaxed else can_assign
+
+        filled = 0
+        # סיבוב ראשון – עם הגבלת פיזור
+        for agent_name in ordered:
+            if filled >= needed:
+                break
+            if check(agent_name, day, shift) and shift_type_count[agent_name][shift] < 3:
+                assign(agent_name, day, shift)
+                filled += 1
+
+        # סיבוב שני – בלי הגבלת פיזור
+        if filled < needed:
+            for agent_name in ordered:
+                if filled >= needed:
+                    break
+                if check(agent_name, day, shift):
+                    assign(agent_name, day, shift)
+                    filled += 1
+
+        return filled
+
+    # ── שלב 1: משמרות קבועות ──
     for agent_name, fixed in FIXED_SHIFTS.items():
         if agent_name not in names:
             continue
         for day, shift in fixed.items():
-            if can_assign(agent_name, day, shift):
+            if can_assign_relaxed(agent_name, day, shift):
                 assign(agent_name, day, shift)
 
-    # שלב 2 – מילוי לפי דרישות
-    priority_days = ["שישי", "שבת"] + ["ראשון", "שני", "שלישי", "רביעי", "חמישי"]
-
-    for day in priority_days:
+    # ── שלב 2: מילוי שישי ושבת קודם ──
+    for day in ["שישי", "שבת"]:
         for shift in SHIFTS:
             if shift == "ערב":
                 required = required_evening(day)
             else:
                 required = REQUIRED_PER_SHIFT[day][shift]
-
             already = sum(1 for n in names if schedule[n][day] == shift)
             needed  = required - already
-            if needed <= 0:
-                continue
+            if needed > 0:
+                fill_shift(day, shift, needed, use_relaxed=False)
 
-            if shift == "לילה":
-                primary = [n for n in names if n in NIGHT_LOVERS]
-            elif shift == "בוקר":
-                primary = [n for n in names if n not in NIGHT_LOVERS and n not in DIVERSE_AGENTS]
+    # ── שלב 3: מילוי ימי חול ──
+    for day in ["ראשון", "שני", "שלישי", "רביעי", "חמישי"]:
+        for shift in SHIFTS:
+            if shift == "ערב":
+                required = required_evening(day)
             else:
-                primary = [n for n in names if n not in NIGHT_LOVERS]
+                required = REQUIRED_PER_SHIFT[day][shift]
+            already = sum(1 for n in names if schedule[n][day] == shift)
+            needed  = required - already
+            if needed > 0:
+                fill_shift(day, shift, needed, use_relaxed=False)
 
-            def sort_key(n):
-                base = 0 if n in primary else 1
-                div  = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
-                return (base, div, assigned_count[n])
-
-            ordered = sorted(names, key=sort_key)
-
-            filled = 0
-            for agent_name in ordered:
-                if filled >= needed:
-                    break
-                if can_assign(agent_name, day, shift) and shift_type_count[agent_name][shift] < 3:
-                    assign(agent_name, day, shift)
-                    filled += 1
-
-            if filled < needed:
-                for agent_name in ordered:
-                    if filled >= needed:
-                        break
-                    if can_assign(agent_name, day, shift):
-                        assign(agent_name, day, shift)
-                        filled += 1
-
-    # שלב 3 – השלמה למכסה
+    # ── שלב 4: השלמה למכסה ──
     for agent_name in names:
         if assigned_count[agent_name] >= totals[agent_name]:
             continue
@@ -221,6 +253,18 @@ def generate_schedule(
                 if can_assign(agent_name, day, shift):
                     assign(agent_name, day, shift)
                     break
+
+    # ── שלב 5: השלמה רגועה (ללא חוק שישי/שבת) לסגירת חורים ──
+    for day in ["שישי", "שבת"]:
+        for shift in SHIFTS:
+            if shift == "ערב":
+                required = required_evening(day)
+            else:
+                required = REQUIRED_PER_SHIFT[day][shift]
+            already = sum(1 for n in names if schedule[n][day] == shift)
+            needed  = required - already
+            if needed > 0:
+                fill_shift(day, shift, needed, use_relaxed=True)
 
     rows = []
     for agent_name in names:
