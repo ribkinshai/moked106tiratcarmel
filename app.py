@@ -597,7 +597,6 @@ with tab1:
         )
 
         with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
-        with st.expander("📝 הוסף הערה לנציג ביום מסוים"):
             c1, c2, c3, c4 = st.columns(4)
             note_agent = c1.selectbox("נציג", df["שם"].tolist())
             note_day   = c2.selectbox("יום",  DAYS_ORDER)
