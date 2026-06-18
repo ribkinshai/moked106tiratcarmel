@@ -99,6 +99,7 @@ def generate_schedule(
     extra_forbidden: Dict = None,
     day_off: Dict = None,
     twelve_hour: Dict = None,
+    pref_days: Dict = None,
 ) -> pd.DataFrame:
     names  = [a["name"] for a in agents if a.get("status", "פעיל") == "פעיל"]
     totals = {a["name"]: a["total"] for a in agents}
@@ -126,7 +127,12 @@ def generate_schedule(
         ]
 
     twelve = twelve_hour or {}
+pref = pref_days or {}
 
+    def pref_score(name, day, shift):
+        days_pref = pref.get(name, {}).get(shift, [])
+        return 0 if day in days_pref else 1
+        
     schedule: Dict[str, Dict[str, str]] = {n: {d: "—" for d in DAYS_ORDER} for n in names}
     assigned_count: Dict[str, int]      = {n: 0 for n in names}
     shift_type_count: Dict[str, Dict[str, int]] = {
@@ -193,9 +199,10 @@ def generate_schedule(
             primary = [n for n in names if n not in NIGHT_LOVERS]
 
         def sort_key(n):
-            base = 0 if n in primary else 1
-            div  = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
-            return (base, div, assigned_count[n])
+            base   = 0 if n in primary else 1
+            div    = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
+            pref_s = pref_score(n, day, shift)
+            return (base, pref_s, div, assigned_count[n])
 
         ordered = sorted(names, key=sort_key)
         check   = can_assign_relaxed if use_relaxed else can_assign
