@@ -54,7 +54,18 @@ defaults = {
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
-
+# טעינה אוטומטית בפתיחה
+if "loaded" not in st.session_state:
+    st.session_state.loaded = True
+    saved = load_current()
+    if saved:
+        if saved.get("schedule") is not None:
+            st.session_state.schedule_df = saved["schedule"]
+        st.session_state.twelve_hour = saved.get("twelve_hour", {})
+        st.session_state.watcher     = saved.get("watcher", {})
+        st.session_state.cell_notes  = saved.get("cell_notes", {})
+        st.session_state.week_label  = saved.get("week_label", "")
+        st.session_state.week_notes  = saved.get("week_notes", "")
 SHIFT_CLASS  = {"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}
 SHIFT_EMOJI  = {"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}
 STATUS_OPTIONS = ["פעיל", "חופשה", "מחלה"]
@@ -364,6 +375,14 @@ with tab1:
             new_df = pd.DataFrame(new_rows)
             st.session_state.schedule_df = new_df
             st.session_state.edit_mode   = False
+            save_current(
+                new_df,
+                st.session_state.twelve_hour,
+                st.session_state.watcher,
+                st.session_state.cell_notes,
+                st.session_state.week_label,
+                st.session_state.week_notes,
+            )
             st.success("נשמר! ✅")
             st.rerun()
 
