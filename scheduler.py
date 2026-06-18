@@ -54,7 +54,7 @@ FORBIDDEN_DEFAULT = {
     ],
 }
 
-NIGHT_LOVERS   = {"איתי", "גיא", "אלינור"}
+NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית"}
 NO_12_HOUR     = {"ריקי", "סימה"}
 
