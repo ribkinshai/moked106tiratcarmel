@@ -3,11 +3,26 @@ import pandas as pd
 from typing import List, Dict
 
 DAYS_ORDER   = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"]
-SHIFTS       = ["בוקר", "צהריים", "לילה"]
+SHIFTS       = ["בוקר", "ערב", "לילה"]
 NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
 MORNING_PREF = {"שרית", "רונית", "שני"}
 
-REQUIRED_PER_SHIFT = 2
+SHIFT_HOURS = {
+    "בוקר": "07:00-15:00",
+    "ערב":  "15:00-23:00",
+    "לילה": "23:00-07:00",
+}
+
+# כמה נציגים נדרשים לכל משמרת לפי יום
+REQUIRED_PER_SHIFT = {
+    "ראשון":  {"בוקר": 3, "ערב": 2, "לילה": 2},
+    "שני":    {"בוקר": 3, "ערב": 2, "לילה": 2},
+    "שלישי":  {"בוקר": 3, "ערב": 2, "לילה": 2},
+    "רביעי":  {"בוקר": 3, "ערב": 2, "לילה": 2},
+    "חמישי":  {"בוקר": 3, "ערב": 2, "לילה": 2},
+    "שישי":   {"בוקר": 2, "ערב": 2, "לילה": 2},
+    "שבת":    {"בוקר": 2, "ערב": 2, "לילה": 2},
+}
 
 
 def generate_schedule(agents: List[Dict], days: List[str]) -> pd.DataFrame:
@@ -40,11 +55,11 @@ def generate_schedule(agents: List[Dict], days: List[str]) -> pd.DataFrame:
     def preferred_shifts(name: str) -> List[str]:
         pref = prefs[name]
         if pref == "לילה" or name in NIGHT_LOVERS:
-            return ["לילה", "צהריים", "בוקר"]
-        elif pref == "בוקר/צהריים" or name in MORNING_PREF:
-            return ["בוקר", "צהריים", "לילה"]
+            return ["לילה", "ערב", "בוקר"]
+        elif pref == "בוקר/ערב" or name in MORNING_PREF:
+            return ["בוקר", "ערב", "לילה"]
         else:
-            return ["בוקר", "צהריים", "לילה"]
+            return ["בוקר", "ערב", "לילה"]
 
     def assign(name: str, day: str, shift: str):
         schedule[name][day] = shift
@@ -53,22 +68,24 @@ def generate_schedule(agents: List[Dict], days: List[str]) -> pd.DataFrame:
     # שלב 1 – מילוי לפי עדיפויות
     for day in priority_days:
         for shift in SHIFTS:
+            required = REQUIRED_PER_SHIFT[day][shift]
+
             if shift == "לילה":
                 ordered = (
                     [n for n in names if (n in NIGHT_LOVERS or prefs[n] == "לילה")]
                     + [n for n in names if n not in NIGHT_LOVERS and prefs[n] != "לילה"]
                 )
-            elif shift in ("בוקר", "צהריים"):
+            elif shift in ("בוקר", "ערב"):
                 ordered = (
-                    [n for n in names if (n in MORNING_PREF or prefs[n] == "בוקר/צהריים")]
-                    + [n for n in names if n not in MORNING_PREF and prefs[n] != "בוקר/צהריים"]
+                    [n for n in names if (n in MORNING_PREF or prefs[n] == "בוקר/ערב")]
+                    + [n for n in names if n not in MORNING_PREF and prefs[n] != "בוקר/ערב"]
                 )
             else:
                 ordered = list(names)
 
             assigned_this_shift = 0
             for name in ordered:
-                if assigned_this_shift >= REQUIRED_PER_SHIFT:
+                if assigned_this_shift >= required:
                     break
                 if can_assign(name, day, shift):
                     if count_shift_type(name, shift) < 4:
@@ -89,7 +106,7 @@ def generate_schedule(agents: List[Dict], days: List[str]) -> pd.DataFrame:
                     assign(name, day, shift)
                     break
 
-    # שלב 3 – השלמה שנייה, כל משמרת פנויה
+    # שלב 3 – השלמה שנייה
     for name in names:
         if assigned_count[name] >= totals[name]:
             continue
@@ -103,7 +120,7 @@ def generate_schedule(agents: List[Dict], days: List[str]) -> pd.DataFrame:
                     assign(name, day, shift)
                     break
 
-    # בניית DataFrame
+    # בניית DataFrame לפי נציגים (לשימוש פנימי)
     rows = []
     for name in names:
         row = {"שם": name}
@@ -112,4 +129,25 @@ def generate_schedule(agents: List[Dict], days: List[str]) -> pd.DataFrame:
         row["סה״כ"] = assigned_count[name]
         rows.append(row)
 
+    return pd.DataFrame(rows)
+
+
+def build_shift_table(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    בונה טבלה לפי משמרות:
+    שורות = (יום, משמרת+שעות)
+    עמודות = נציג 1, נציג 2, ...
+    """
+    rows = []
+    for day in DAYS_ORDER:
+        for shift in SHIFTS:
+            hours = SHIFT_HOURS[shift]
+            agents_in_shift = df[df[day] == shift]["שם"].tolist()
+            row = {
+                "יום": day,
+                "משמרת": f"{shift}\n{hours}",
+            }
+            for i, agent in enumerate(agents_in_shift):
+                row[f"נציג {i+1}"] = agent
+            rows.append(row)
     return pd.DataFrame(rows)
