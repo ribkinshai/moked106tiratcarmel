@@ -385,24 +385,26 @@ with tab1:
                     color     = AGENT_COLORS.get(ag, "#eee")
                     note      = st.session_state.cell_notes.get(f"{ag}_{day}", "")
                     note_html = f"<br><small style='color:#888'>📝{note}</small>" if note else ""
-                    if twelve.get(ag) and ag not in NO_12_HOUR:
+
+                    key_12 = f"{ag}_{day}"
+                    is_12  = st.session_state.twelve_hour.get(key_12, False)
+                    hours_tag = ""
+                    if is_12 and ag not in NO_12_HOUR:
                         if shift == "בוקר":
-                            display_hours = "07:00-19:00"
+                            hours_tag = " 07:00-19:00"
                         elif shift == "לילה":
-                            display_hours = "19:00-07:00"
-                        else:
-                            display_hours = hours
-                    else:
-                        display_hours = hours
+                            hours_tag = " 19:00-07:00"
+
                     watcher_key   = f"{day}_{shift}"
                     is_watcher    = st.session_state.watcher.get(watcher_key) == ag
                     watcher_badge = " 👁" if is_watcher else ""
+
                     cells.append(
                         f"<span style='background:{color};border-radius:6px;"
                         f"padding:3px 8px;display:inline-block;margin:2px;"
                         f"font-size:12px;font-weight:600'>"
-                        f"{ag}{watcher_badge}<br>"
-                        f"<span style='font-weight:400;font-size:11px'>{display_hours}</span>"
+                        f"{ag}{watcher_badge}"
+                        f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_tag}</span>"
                         f"{note_html}</span>"
                     )
                 agents_str = "<br>".join(cells) if cells else "<span style='color:#bbb'>—</span>"
