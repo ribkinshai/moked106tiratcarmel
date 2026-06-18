@@ -345,8 +345,10 @@ with tab1:
                 </div>
                 """, unsafe_allow_html=True)
 
-        # ── ייצוא PDF ───────────────────────────────────────────────────────
-       st.divider()
+       """, unsafe_allow_html=True)
+
+        # ── ייצוא CSV ───────────────────────────────────────────────────────
+        st.divider()
         output = st.session_state.schedule_df.to_csv(index=False).encode("utf-8-sig")
         st.download_button(
             label="📥 הורד סידור כ-CSV",
