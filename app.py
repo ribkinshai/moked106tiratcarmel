@@ -116,7 +116,6 @@ with tab1:
 
     col1, col2, col3, col4 = st.columns([2,1,1,1])
     with col1:
-        with col1:
         if st.button("⚡ צור סידור אוטומטי", use_container_width=True):
             day_off_map = {a["name"]: a.get("day_off",[]) for a in st.session_state.agents}
             with st.spinner("מחשב סידור..."):
