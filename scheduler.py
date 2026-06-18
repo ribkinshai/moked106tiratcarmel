@@ -61,23 +61,17 @@ def generate_schedule(
     extra_forbidden: Dict = None,
     day_off: Dict = None,
 ) -> pd.DataFrame:
-    """
-    extra_forbidden: {name: [(day, shift), ...]} – איסורים נוספים מהממשק
-    day_off: {name: [day, ...]} – ימי חופש קבועים
-    """
     names  = [a["name"] for a in agents if a.get("status", "פעיל") == "פעיל"]
     totals = {a["name"]: a["total"] for a in agents}
 
     forbidden_local = copy.deepcopy(FORBIDDEN_DEFAULT)
 
-    # מיזוג איסורים נוספים מהממשק
     if extra_forbidden:
         for name, lst in extra_forbidden.items():
             if name not in forbidden_local:
                 forbidden_local[name] = []
             forbidden_local[name].extend(lst)
 
-    # ימי חופש קבועים → אוסר את כל המשמרות באותו יום
     if day_off:
         for name, off_days in day_off.items():
             if name not in forbidden_local:
@@ -102,7 +96,6 @@ def generate_schedule(
         return any(fd == day and fs == shift for (fd, fs) in forbidden_local.get(name, []))
 
     def can_assign(name, day, shift):
-        def can_assign(name, day, shift):
         if assigned_count[name] >= totals[name]:
             return False
         if schedule[name][day] != "—":
@@ -110,26 +103,13 @@ def generate_schedule(
         if is_forbidden(name, day, shift):
             return False
         day_idx = DAYS_ORDER.index(day)
-        # אסור בוקר אחרי לילה
         if shift == "בוקר" and day_idx > 0:
             if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
                 return False
-        # אסור לעבוד שישי ושבת באותו שבוע
         if day == "שישי" and schedule[name]["שבת"] != "—":
             return False
         if day == "שבת" and schedule[name]["שישי"] != "—":
             return False
-        return True
-        if assigned_count[name] >= totals[name]:
-            return False
-        if schedule[name][day] != "—":
-            return False
-        if is_forbidden(name, day, shift):
-            return False
-        day_idx = DAYS_ORDER.index(day)
-        if shift == "בוקר" and day_idx > 0:
-            if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
-                return False
         return True
 
     def assign(name, day, shift):
@@ -140,7 +120,6 @@ def generate_schedule(
     def diversity_score(name, shift):
         return shift_type_count[name][shift]
 
-    # שלב 1 – משמרות קבועות
     for agent_name, fixed in FIXED_SHIFTS.items():
         if agent_name not in names:
             continue
@@ -148,7 +127,6 @@ def generate_schedule(
             if can_assign(agent_name, day, shift):
                 assign(agent_name, day, shift)
 
-    # שלב 2 – מילוי לפי דרישות
     priority_days = ["שישי", "שבת"] + ["ראשון", "שני", "שלישי", "רביעי", "חמישי"]
 
     for day in priority_days:
@@ -189,7 +167,6 @@ def generate_schedule(
                         assign(agent_name, day, shift)
                         filled += 1
 
-    # שלב 3 – השלמה למכסה
     for agent_name in names:
         if assigned_count[agent_name] >= totals[agent_name]:
             continue
