@@ -43,22 +43,17 @@ def generate_schedule(agents: List[Dict], days: List[str], is_fourth_saturday: b
     names  = [a["name"]  for a in agents]
     totals = {a["name"]: a["total"] for a in agents}
 
-    schedule: Dict[str, Dict[str, str]] = {n: {d: "—" for d in DAYS_ORDER} for n in names}
-    assigned_count: Dict[str, int]      = {n: 0 for n in names}
-    shift_type_count: Dict[str, Dict[str, int]] = {
-        n: {"בוקר": 0, "ערב": 0, "לילה": 0} for n in names
-    }
+    # העתק FORBIDDEN כדי לא לשנות את הגלובלי
+    import copy
+    forbidden_local = copy.deepcopy(FORBIDDEN)
 
-    # אם לא שבת רביעית – ריקי לא עובדת שבת (כבר בFORBIDDEN)
-    # אם כן שבת רביעית – מוסיפים משמרת שבת לריקי (מכסה עולה ל-4)
     if is_fourth_saturday:
         totals["ריקי"] = 4
-        # מסירים את איסור שבת מריקי
-        FORBIDDEN["ריקי"] = [d for d in FORBIDDEN.get("ריקי", []) 
-                              if d[0] != "שבת"]
+        forbidden_local["ריקי"] = [d for d in forbidden_local.get("ריקי", [])
+                                    if d[0] != "שבת"]
 
     def is_forbidden(name: str, day: str, shift: str) -> bool:
-        for (fd, fs) in FORBIDDEN.get(name, []):
+        for (fd, fs) in forbidden_local.get(name, []):
             if fd == day and fs == shift:
                 return True
         return False
