@@ -233,7 +233,7 @@ def generate_schedule(
             if needed > 0:
                 fill_shift(day, shift, needed, use_relaxed=False)
 
-    # ── שלב 4: השלמה למכסה ──
+   # ── שלב 4: השלמה למכסה – רק בימים שיש מקום ──
     for agent_name in names:
         if assigned_count[agent_name] >= totals[agent_name]:
             continue
@@ -250,9 +250,18 @@ def generate_schedule(
                 shift_order = sorted(SHIFTS, key=lambda s: shift_type_count[agent_name][s])
 
             for shift in shift_order:
-                if can_assign(agent_name, day, shift):
-                    assign(agent_name, day, shift)
-                    break
+                if not can_assign(agent_name, day, shift):
+                    continue
+                # בדוק שהמשמרת לא מלאה כבר
+                current_count = sum(1 for n in names if schedule[n][day] == shift)
+                if shift == "ערב":
+                    max_allowed = required_evening(day)
+                else:
+                    max_allowed = REQUIRED_PER_SHIFT[day][shift]
+                if current_count >= max_allowed:
+                    continue
+                assign(agent_name, day, shift)
+                break
 
     # ── שלב 5: השלמה רגועה (ללא חוק שישי/שבת) לסגירת חורים ──
     for day in ["שישי", "שבת"]:
