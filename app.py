@@ -301,7 +301,7 @@ with tab1:
         </table>
         </body></html>
         """
-        components.html(full_html, height=560, scrolling=True)
+        components.html(full_html, height=750, scrolling=False)
 
         # ── לוח עריכה ──
         st.markdown("---")
@@ -533,7 +533,7 @@ with tab1:
         </table>
         </body></html>
         """
-        components.html(full_html, height=560, scrolling=True)
+        components.html(full_html, height=750, scrolling=False)
 
         # ── גרסת הדפסה ──
         print_html_inner = f"""<!DOCTYPE html>
