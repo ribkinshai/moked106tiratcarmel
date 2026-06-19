@@ -269,7 +269,7 @@ with tab1:
                         f"width:18px;height:18px;border-radius:50%;"
                         f"display:flex;align-items:center;justify-content:center;"
                         f"box-shadow:0 2px 6px rgba(0,0,0,0.2);'>{ag_total}</span>"
-                        f"{note_html}</span>"
+                        f"</span>"
                     )
                 agents_str = "<br>".join(cells) if cells else "<span style='color:#bbb'>—</span>"
                 rows_html += (
