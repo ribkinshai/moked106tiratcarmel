@@ -844,6 +844,59 @@ with tab2:
             body {{ font-family:'Heebo',sans-serif; direction:rtl; margin:0; padding:10px; background:#f8f9fc; }}
         </style></head><body>{bars_html}</body></html>
         """, height=len(all_names)*220 + 50, scrolling=True)
+# ── דירוג חודשי ──
+        st.divider()
+        st.markdown("""
+        <h2 style='text-align:center;background:linear-gradient(135deg,#f093fb,#f5576c);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   background-clip:text;font-weight:800;'>🏆 דירוג חודשי - 30 ימים אחרונים</h2>
+        """, unsafe_allow_html=True)
+
+        cutoff = datetime.now() - timedelta(days=30)
+        recent_stats = {n: {"בוקר": 0, "ערב": 0, "לילה": 0, "סה״כ": 0} for n in all_names}
+        for entry in archive:
+            try:
+                entry_date = datetime.strptime(entry["date"].split()[0], "%d/%m/%Y")
+            except Exception:
+                continue
+            if entry_date < cutoff:
+                continue
+            for row in entry["schedule"]:
+                name = row["שם"]
+                if name not in recent_stats:
+                    continue
+                for day in DAYS_ORDER:
+                    shift = row.get(day, "—")
+                    if shift in ("בוקר", "ערב", "לילה"):
+                        recent_stats[name][shift] += 1
+                        recent_stats[name]["סה״כ"] += 1
+
+        def make_ranking(category):
+            sorted_list = sorted(recent_stats.items(),
+                                  key=lambda x: x[1][category], reverse=True)
+            return [(name, stats[category]) for name, stats in sorted_list if stats[category] > 0]
+
+        medals = ["🥇", "🥈", "🥉"]
+        category_titles = {
+            "סה״כ":  ("👑 מלך המשמרות", "#667eea"),
+            "בוקר":  ("☀️ אלוף הבקרים", "#10b981"),
+            "ערב":   ("🌤 אלוף הערבים", "#f59e0b"),
+            "לילה":  ("🌙 אלוף הלילות", "#8b5cf6"),
+        }
+
+        rank_cols = st.columns(4)
+        for col, (cat, (title, color)) in zip(rank_cols, category_titles.items()):
+            ranking = make_ranking(cat)
+            with col:
+                html = f"<div style='background:white;border-radius:16px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,0.08);'><div style='color:{color};font-weight:800;font-size:16px;margin-bottom:12px;text-align:center;'>{title}</div>"
+                if not ranking:
+                    html += "<div style='color:#aaa;text-align:center;'>אין נתונים</div>"
+                else:
+                    for i, (name, value) in enumerate(ranking[:5]):
+                        medal = medals[i] if i < 3 else f"{i+1}."
+                        html += f"<div style='display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f5;'><span style='font-weight:600;color:#3d3d5c;'>{medal} {name}</span><span style='background:{color};color:white;padding:2px 10px;border-radius:12px;font-weight:700;font-size:12px;'>{value}</span></div>"
+                html += "</div>"
+                st.markdown(html, unsafe_allow_html=True)
 
 with tab3:
     st.markdown("""
