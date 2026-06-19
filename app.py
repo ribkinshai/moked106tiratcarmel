@@ -5,7 +5,6 @@ import streamlit.components.v1 as components
 from scheduler import generate_schedule, AGENT_COLORS, SHIFT_HOURS, DAYS_ORDER, SHIFTS, NO_12_HOUR
 from archive import load_archive, save_to_archive, delete_from_archive, archive_to_df
 from current_state import save_current, load_current
-from streamlit_sortables import sort_items
 
 st.set_page_config(
     page_title="סידור עבודה – מוקד 106",
@@ -571,57 +570,6 @@ with tab1:
         """
         components.html(full_html, height=750, scrolling=False)
 
-        # ── Drag & Drop ──
-        with st.expander("🎯 העבר נציגים בין משמרות (גרור)", expanded=False):
-            st.info("גרור נציג ממשמרת אחת למשמרת אחרת והאפליקציה תעדכן אוטומטית")
-
-            # בניית רשימת קונטיינרים – אחד לכל יום+משמרת
-            containers = []
-            for day in DAYS_ORDER:
-                for shift in SHIFTS:
-                    agents_in = df[df[day] == shift]["שם"].tolist()
-                    containers.append({
-                        "header": f"{SHIFT_EMOJI[shift] if isinstance(SHIFT_EMOJI[shift], str) and len(SHIFT_EMOJI[shift]) < 5 else ''} {day} - {shift}",
-                        "items":  agents_in,
-                    })
-
-            sorted_result = sort_items(containers, multi_containers=True, direction="vertical")
-
-            if st.button("💾 החל שינויים", type="primary", key="apply_drag"):
-                # בנה DataFrame חדש מהתוצאה
-                new_schedule = {a["name"]: {d: "—" for d in DAYS_ORDER}
-                                for a in st.session_state.agents
-                                if a.get("status","פעיל") == "פעיל"}
-
-                idx = 0
-                for day in DAYS_ORDER:
-                    for shift in SHIFTS:
-                        container_items = sorted_result[idx]["items"]
-                        for ag in container_items:
-                            if ag in new_schedule:
-                                new_schedule[ag][day] = shift
-                        idx += 1
-
-                # המר ל-DataFrame
-                new_rows = []
-                for ag, day_shifts in new_schedule.items():
-                    row = {"שם": ag}
-                    for d in DAYS_ORDER:
-                        row[d] = day_shifts[d]
-                    row["סה״כ"] = sum(1 for d in DAYS_ORDER if day_shifts[d] != "—")
-                    new_rows.append(row)
-
-                st.session_state.schedule_df = pd.DataFrame(new_rows)
-                save_current(
-                    st.session_state.schedule_df,
-                    st.session_state.twelve_hour,
-                    st.session_state.watcher,
-                    st.session_state.cell_notes,
-                    st.session_state.week_label,
-                    st.session_state.week_notes,
-                )
-                st.success("השינויים הוחלו ונשמרו! ✅")
-                st.rerun()
         # ── גרסת הדפסה ──
         print_html_inner = f"""<!DOCTYPE html>
 <html lang='he' dir='rtl'><head>
