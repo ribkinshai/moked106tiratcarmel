@@ -77,7 +77,11 @@ def get_next_week_label():
     next_saturday = next_sunday + timedelta(days=6)
     return f"{next_sunday.day}-{next_saturday.day}/{next_saturday.month}"
 SHIFT_CLASS  = {"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}
-SHIFT_EMOJI  = {"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}
+SHIFT_EMOJI = {
+    "בוקר": '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
+    "ערב":  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><path d="M2 12h20M12 2a10 10 0 0 1 10 10M5 18a7 7 0 0 1 14 0"/></svg>',
+    "לילה": '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+}
 STATUS_OPTIONS = ["פעיל", "חופשה", "מחלה"]
 SHIFT_OPTIONS  = ["בוקר", "ערב", "לילה", "—"]
 
@@ -236,11 +240,23 @@ with tab1:
                     watcher_key   = f"{day}_{shift}"
                     is_watcher    = st.session_state.watcher.get(watcher_key) == ag
                     watcher_badge = " 👁" if is_watcher else ""
+                    # ספירת משמרות לנציג השבוע
+                    ag_total = sum(1 for d in DAYS_ORDER 
+                                   if df[df["שם"]==ag][d].values[0] != "—")
+                    
                     cells.append(
                         f"<span style='background:{color};border-radius:6px;"
                         f"padding:3px 8px;display:inline-block;margin:2px;"
-                        f"font-size:12px;font-weight:600'>"
-                        f"{ag}{watcher_badge}{hours_display}</span>"
+                        f"font-size:12px;font-weight:600;position:relative;'>"
+                        f"{ag}{watcher_badge}"
+                        f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_tag}</span>"
+                        f"<span style='position:absolute;top:-6px;left:-6px;"
+                        f"background:linear-gradient(135deg,#667eea,#764ba2);"
+                        f"color:white;font-size:9px;font-weight:800;"
+                        f"width:18px;height:18px;border-radius:50%;"
+                        f"display:flex;align-items:center;justify-content:center;"
+                        f"box-shadow:0 2px 6px rgba(0,0,0,0.2);'>{ag_total}</span>"
+                        f"{note_html}</span>"
                     )
                 agents_str = "<br>".join(cells) if cells else "<span style='color:#bbb'>—</span>"
                 rows_html += (
@@ -663,10 +679,15 @@ td span[style*='background'] {{
         """, unsafe_allow_html=True)
 
 with tab2:
-    st.markdown("### 📊 סטטיסטיקות היסטוריות")
+    st.markdown("""
+    <h2 style='text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);
+               -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+               background-clip:text;font-weight:800;'>📊 סטטיסטיקות היסטוריות</h2>
+    """, unsafe_allow_html=True)
+
     archive = load_archive()
     if not archive:
-        st.info("אין נתונים בארכיון עדיין.")
+        st.info("אין נתונים בארכיון עדיין. שמור סידורים כדי לראות סטטיסטיקות.")
     else:
         all_names = list({r["שם"] for entry in archive for r in entry["schedule"]})
         stats = {n: {"בוקר": 0, "ערב": 0, "לילה": 0} for n in all_names}
@@ -677,9 +698,56 @@ with tab2:
                     shift = row.get(day, "—")
                     if shift in stats[name]:
                         stats[name][shift] += 1
-        chart_data = pd.DataFrame(stats).T
-        chart_data.index.name = "נציג"
-        st.bar_chart(chart_data)
+
+        # גרף מודרני
+        max_val = max(
+            (stats[n][s] for n in all_names for s in ["בוקר","ערב","לילה"]),
+            default=1
+        ) or 1
+
+        bars_html = ""
+        for name in all_names:
+            total = sum(stats[name].values())
+            bars_html += f"""
+            <div style='background:white;border-radius:16px;padding:18px;margin:12px 0;
+                        box-shadow:0 4px 20px rgba(0,0,0,0.08);'>
+                <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;'>
+                    <h3 style='margin:0;color:#3d3d5c;font-weight:700;'>{name}</h3>
+                    <div style='background:linear-gradient(135deg,#667eea,#764ba2);color:white;
+                                padding:6px 14px;border-radius:20px;font-weight:700;font-size:14px;'>
+                        סה״כ: {total}
+                    </div>
+                </div>
+            """
+            shift_colors = {
+                "בוקר": ("#6ee7b7", "#10b981"),
+                "ערב":  ("#f59e0b", "#d97706"),
+                "לילה": ("#8b5cf6", "#7c3aed"),
+            }
+            for shift in ["בוקר", "ערב", "לילה"]:
+                value = stats[name][shift]
+                width = (value / max_val) * 100
+                c1, c2 = shift_colors[shift]
+                bars_html += f"""
+                <div style='display:flex;align-items:center;margin:6px 0;'>
+                    <div style='width:60px;font-weight:600;font-size:13px;color:#555;'>{shift}</div>
+                    <div style='flex:1;background:#f0f0f5;height:24px;border-radius:12px;overflow:hidden;margin:0 10px;position:relative;'>
+                        <div style='background:linear-gradient(90deg,{c1},{c2});height:100%;
+                                    width:{width}%;border-radius:12px;
+                                    box-shadow:inset 0 -2px 4px rgba(0,0,0,0.1);
+                                    transition:width 0.5s ease;'></div>
+                    </div>
+                    <div style='width:30px;text-align:center;font-weight:700;color:#3d3d5c;'>{value}</div>
+                </div>
+                """
+            bars_html += "</div>"
+
+        components.html(f"""
+        <html><head><style>
+            @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap');
+            body {{ font-family:'Heebo',sans-serif; direction:rtl; margin:0; padding:10px; background:#f8f9fc; }}
+        </style></head><body>{bars_html}</body></html>
+        """, height=len(all_names)*220 + 50, scrolling=True)
 
 with tab3:
     st.markdown("### 🗂 ארכיון סידורים")
