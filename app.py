@@ -253,23 +253,13 @@ with tab1:
                     watcher_key   = f"{day}_{shift}"
                     is_watcher    = st.session_state.watcher.get(watcher_key) == ag
                     watcher_badge = " 👁" if is_watcher else ""
-                    # ספירת משמרות לנציג השבוע
-                    ag_total = sum(1 for d in DAYS_ORDER 
-                                   if df[df["שם"]==ag][d].values[0] != "—")
-                    
                     cells.append(
                         f"<span style='background:{color};border-radius:6px;"
-                        f"padding:3px 8px;display:inline-block;margin:2px;"
-                        f"font-size:12px;font-weight:600;position:relative;'>"
+                        f"padding:3px 12px;display:inline-block;margin:6px 2px 2px 2px;"
+                        f"font-size:12px;font-weight:600;'>"
                         f"{ag}{watcher_badge}"
-                        f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_display}</span>"
-                        f"<span style='position:absolute;top:-6px;left:-6px;"
-                        f"background:linear-gradient(135deg,#667eea,#764ba2);"
-                        f"color:white;font-size:9px;font-weight:800;"
-                        f"width:18px;height:18px;border-radius:50%;"
-                        f"display:flex;align-items:center;justify-content:center;"
-                        f"box-shadow:0 2px 6px rgba(0,0,0,0.2);'>{ag_total}</span>"
-                        f"</span>"
+                        f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_tag}</span>"
+                        f"{note_html}</span>"
                     )
                 agents_str = "<br>".join(cells) if cells else "<span style='color:#bbb'>—</span>"
                 rows_html += (
