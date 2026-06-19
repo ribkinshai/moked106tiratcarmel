@@ -665,6 +665,84 @@ td span[style*='background'] {{
             })
         st.dataframe(pd.DataFrame(summary_rows).set_index("נציג"), use_container_width=True)
 
+        # ── מד הוגנות ──
+        st.divider()
+        st.markdown("### ⚖️ מד הוגנות")
+
+        # חישוב סטיית תקן של אחוז המילוי לכל נציג
+        fairness_data = []
+        for _, row in df.iterrows():
+            ag_obj = next((a for a in st.session_state.agents if a["name"]==row["שם"]), {})
+            ag_total = ag_obj.get("total", 0)
+            filled = row.get("סה״כ", 0)
+            if ag_total > 0:
+                fill_pct = (filled / ag_total) * 100
+                fairness_data.append({"name": row["שם"], "pct": fill_pct, "filled": filled, "total": ag_total})
+
+        if fairness_data:
+            avg_pct = sum(f["pct"] for f in fairness_data) / len(fairness_data)
+            variance = sum((f["pct"] - avg_pct) ** 2 for f in fairness_data) / len(fairness_data)
+            std_dev = variance ** 0.5
+
+            # ציון הוגנות: 100 = מושלם, 0 = גרוע מאוד
+            fairness_score = max(0, min(100, 100 - std_dev * 2))
+
+            # צבע לפי ציון
+            if fairness_score >= 85:
+                grade_color = "#10b981"
+                grade_text  = "מצוין"
+                grade_emoji = "🏆"
+            elif fairness_score >= 70:
+                grade_color = "#f59e0b"
+                grade_text  = "טוב"
+                grade_emoji = "👍"
+            else:
+                grade_color = "#ef4444"
+                grade_text  = "טעון שיפור"
+                grade_emoji = "⚠️"
+
+            # מי הכי עמוס ומי הכי פנוי
+            sorted_by_pct = sorted(fairness_data, key=lambda x: x["pct"], reverse=True)
+            most_loaded   = sorted_by_pct[0]
+            least_loaded  = sorted_by_pct[-1]
+
+            st.markdown(f"""
+            <div style='background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                        border-radius:20px;padding:25px;color:white;
+                        box-shadow:0 10px 30px rgba(0,0,0,0.15);'>
+                <div style='display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;'>
+                    <div style='text-align:center;flex:1;min-width:150px;'>
+                        <div style='font-size:14px;opacity:0.9;margin-bottom:5px;'>ציון הוגנות</div>
+                        <div style='font-size:48px;font-weight:800;line-height:1;'>{fairness_score:.0f}</div>
+                        <div style='font-size:13px;opacity:0.85;'>מתוך 100</div>
+                    </div>
+                    <div style='background:white;color:{grade_color};border-radius:14px;
+                                padding:14px 22px;font-weight:800;font-size:18px;text-align:center;
+                                box-shadow:0 6px 20px rgba(0,0,0,0.2);'>
+                        {grade_emoji} {grade_text}
+                    </div>
+                    <div style='text-align:center;flex:1;min-width:200px;'>
+                        <div style='font-size:13px;opacity:0.9;margin-bottom:8px;'>📊 הכי עמוס</div>
+                        <div style='font-weight:700;font-size:16px;'>{most_loaded['name']}</div>
+                        <div style='font-size:12px;opacity:0.85;'>{most_loaded['filled']}/{most_loaded['total']} ({most_loaded['pct']:.0f}%)</div>
+                    </div>
+                    <div style='text-align:center;flex:1;min-width:200px;'>
+                        <div style='font-size:13px;opacity:0.9;margin-bottom:8px;'>🌿 הכי פנוי</div>
+                        <div style='font-weight:700;font-size:16px;'>{least_loaded['name']}</div>
+                        <div style='font-size:12px;opacity:0.85;'>{least_loaded['filled']}/{least_loaded['total']} ({least_loaded['pct']:.0f}%)</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # פס התקדמות
+            st.markdown(f"""
+            <div style='background:#f0f0f5;border-radius:10px;height:8px;
+                        margin:15px 0;overflow:hidden;'>
+                <div style='background:linear-gradient(90deg,#ef4444,#f59e0b,#10b981);
+                            height:100%;width:{fairness_score}%;border-radius:10px;'></div>
+            </div>
+            """, unsafe_allow_html=True)
         st.divider()
         st.markdown("### 👤 סטטוס מכסה")
         scols = st.columns(len(st.session_state.agents))
