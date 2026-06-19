@@ -262,7 +262,7 @@ with tab1:
                         f"padding:3px 8px;display:inline-block;margin:2px;"
                         f"font-size:12px;font-weight:600;position:relative;'>"
                         f"{ag}{watcher_badge}"
-                        f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_tag}</span>"
+                        f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_display}</span>"
                         f"<span style='position:absolute;top:-6px;left:-6px;"
                         f"background:linear-gradient(135deg,#667eea,#764ba2);"
                         f"color:white;font-size:9px;font-weight:800;"
