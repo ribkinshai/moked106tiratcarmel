@@ -138,7 +138,7 @@ with st.sidebar:
     st.markdown("🟣 לילה 23:00-07:00")
     st.markdown("🔴 לילה 12ש 19:00-07:00")
 
-tab1, tab2, tab3 = st.tabs(["📋 סידור", "📊 סטטיסטיקות", "🗂 ארכיון"])
+tab1, tab2, tab3, tab4 = st.tabs(["📋 סידור", "📊 סטטיסטיקות", "🔍 השוואת שבועות", "🗂 ארכיון"])
 
 with tab1:
     next_week = get_next_week_label()
@@ -846,6 +846,61 @@ with tab2:
         """, height=len(all_names)*220 + 50, scrolling=True)
 
 with tab3:
+    st.markdown("""
+    <h2 style='text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);
+               -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+               background-clip:text;font-weight:800;'>🔍 השוואת שבועות</h2>
+    """, unsafe_allow_html=True)
+
+    archive_data = load_archive()
+    if len(archive_data) < 2:
+        st.info("צריך לפחות 2 סידורים בארכיון כדי להשוות. שמור עוד סידורים!")
+    else:
+        week_labels = [e["week"] for e in archive_data]
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            week_1 = st.selectbox("בחר שבוע ראשון", week_labels, key="cmp_week1")
+        with col_b:
+            week_2 = st.selectbox("בחר שבוע שני", week_labels,
+                                   index=min(1, len(week_labels)-1), key="cmp_week2")
+
+        entry_1 = next((e for e in archive_data if e["week"] == week_1), None)
+        entry_2 = next((e for e in archive_data if e["week"] == week_2), None)
+
+        if entry_1 and entry_2:
+            df_1 = archive_to_df(entry_1)
+            df_2 = archive_to_df(entry_2)
+
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown(f"#### 📅 {week_1}")
+                st.dataframe(df_1, use_container_width=True, height=400)
+            with c2:
+                st.markdown(f"#### 📅 {week_2}")
+                st.dataframe(df_2, use_container_width=True, height=400)
+
+            st.divider()
+            st.markdown("### 📊 השוואת משמרות לפי נציג")
+
+            all_names = sorted(set(df_1["שם"].tolist()) | set(df_2["שם"].tolist()))
+            cmp_rows = []
+            for name in all_names:
+                row1 = df_1[df_1["שם"]==name]
+                row2 = df_2[df_2["שם"]==name]
+                t1 = row1["סה״כ"].values[0] if len(row1) else 0
+                t2 = row2["סה״כ"].values[0] if len(row2) else 0
+                diff = t2 - t1
+                arrow = "↑" if diff > 0 else ("↓" if diff < 0 else "=")
+                cmp_rows.append({
+                    "נציג": name,
+                    f"שבוע {week_1}": t1,
+                    f"שבוע {week_2}": t2,
+                    "שינוי": f"{arrow} {abs(diff)}" if diff else "= 0"
+                })
+            st.dataframe(pd.DataFrame(cmp_rows).set_index("נציג"), use_container_width=True)
+
+with tab4:
     st.markdown("### 🗂 ארכיון סידורים")
     archive = load_archive()
     if not archive:
