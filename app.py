@@ -143,9 +143,19 @@ tab1, tab2, tab3 = st.tabs(["📋 סידור", "📊 סטטיסטיקות", "�
 with tab1:
     next_week = get_next_week_label()
     st.markdown(f"""
-        <div style='text-align:center; padding:10px 0;'>
-            <h1 style='margin:0; color:#3d3d5c; font-weight:800;'>📋 מוקד 106 - סידור עבודה שבועי</h1>
-            <h3 style='margin:5px 0 0; color:#7c6fc4; font-weight:600;'>📅 {next_week}</h3>
+        <div style='text-align:center; padding:20px 0;'>
+            <h1 style='margin:0; font-weight:900; font-size:42px; letter-spacing:-1px;'>
+                <span style='background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);
+                             -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                             background-clip:text;text-shadow:0 4px 20px rgba(102,126,234,0.3);'>
+                    מוקד 106
+                </span>
+                <span style='color:#3d3d5c;font-size:32px;font-weight:600;'>
+                    | סידור עבודה שבועי
+                </span>
+            </h1>
+            <h3 style='margin:10px 0 0; color:#7c6fc4; font-weight:600;
+                       letter-spacing:2px;'>📅 {next_week}</h3>
         </div>
     """, unsafe_allow_html=True)
     if st.session_state.week_label:
