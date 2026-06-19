@@ -76,6 +76,14 @@ def get_next_week_label():
     next_sunday = today + timedelta(days=days_until_sunday)
     next_saturday = next_sunday + timedelta(days=6)
     return f"{next_sunday.day}-{next_saturday.day}/{next_saturday.month}"
+
+def get_week_dates():
+    today = datetime.now()
+    days_until_sunday = (6 - today.weekday()) % 7
+    if days_until_sunday == 0:
+        days_until_sunday = 7
+    next_sunday = today + timedelta(days=days_until_sunday)
+    return [(next_sunday + timedelta(days=i)) for i in range(7)]
 SHIFT_CLASS  = {"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}
 SHIFT_EMOJI = {
     "בוקר": '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
@@ -214,7 +222,12 @@ with tab1:
         df = st.session_state.schedule_df
 
         # הצג טבלה כרגיל
-        header_html = "".join(f"<th>{day}</th>" for day in DAYS_ORDER)
+        week_dates = get_week_dates()
+        header_html = "".join(
+            f"<th>{day}<br><span style='font-size:11px;font-weight:400;opacity:0.7'>"
+            f"{week_dates[i].day}/{week_dates[i].month}</span></th>"
+            for i, day in enumerate(DAYS_ORDER)
+        )
         rows_html   = ""
         for shift in SHIFTS:
             sc    = SHIFT_CLASS[shift]
@@ -453,7 +466,12 @@ with tab1:
         df     = st.session_state.schedule_df
         twelve = st.session_state.twelve_hour
 
-        header_html = "".join(f"<th>{day}</th>" for day in DAYS_ORDER)
+        week_dates = get_week_dates()
+        header_html = "".join(
+            f"<th>{day}<br><span style='font-size:11px;font-weight:400;opacity:0.7'>"
+            f"{week_dates[i].day}/{week_dates[i].month}</span></th>"
+            for i, day in enumerate(DAYS_ORDER)
+        )
         rows_html   = ""
 
         for shift in SHIFTS:
