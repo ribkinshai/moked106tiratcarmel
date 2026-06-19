@@ -74,7 +74,7 @@ FORBIDDEN_DEFAULT = {
 }
 
 NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
-DIVERSE_AGENTS = {"שני", "רונית"}
+DIVERSE_AGENTS = {"שני", "רונית", "לירון"}
 NO_12_HOUR     = {"ריקי", "סימה"}
 
 AGENT_COLORS = {
@@ -89,6 +89,7 @@ AGENT_COLORS = {
     "אדיר":   "#FFE0B3",
     "טלי":    "#E0B3FF",
     "סימה":   "#FFD6D6",
+    "לירון":  "#C8E6C9",
 }
 
 
