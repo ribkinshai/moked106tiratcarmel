@@ -418,8 +418,12 @@ with tab1:
                 font-family:'Heebo',sans-serif; direction:rtl; margin:0;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 padding: 20px;
+                overflow-x: auto;
             }}
-            table {{ width:100%; border-collapse:separate; border-spacing:6px; }}
+            table {{
+                width:100%; border-collapse:separate; border-spacing:6px;
+                min-width: 900px;
+            }}
             th {{
                 background: linear-gradient(180deg, #ffffff 0%, #e8e4f8 100%);
                 color:#3d3d5c; padding:16px; border-radius:12px;
@@ -462,7 +466,7 @@ with tab1:
         </table>
         </body></html>
         """
-        components.html(full_html, height=750, scrolling=False)
+        components.html(full_html, height=750, scrolling=True)
 
         # ── לוח עריכה ──
         st.markdown("---")
@@ -655,8 +659,12 @@ with tab1:
                 font-family:'Heebo',sans-serif; direction:rtl; margin:0;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 padding: 20px;
+                overflow-x: auto;
             }}
-            table {{ width:100%; border-collapse:separate; border-spacing:6px; }}
+            table {{
+                width:100%; border-collapse:separate; border-spacing:6px;
+                min-width: 900px;
+            }}
             th {{
                 background: linear-gradient(180deg, #ffffff 0%, #e8e4f8 100%);
                 color:#3d3d5c; padding:16px; border-radius:12px;
@@ -699,7 +707,7 @@ with tab1:
         </table>
         </body></html>
         """
-        components.html(full_html, height=750, scrolling=False)
+        components.html(full_html, height=750, scrolling=True)
 
         # ── גרסת הדפסה ──
         print_html_inner = f"""<!DOCTYPE html>
