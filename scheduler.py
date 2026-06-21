@@ -75,6 +75,8 @@ FORBIDDEN_DEFAULT = {
 
 NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית", "לירון"}
+# נציגים שמוחרגים מבדיקת חזרות (ביקשו לעבוד רק לילות/משמרת קבועה)
+EXEMPT_FROM_REPEAT_CHECK = {"גיא", "לב", "סימה", "אלינור", "איתי", "שרית", "ריקי", "אדיר"}
 NO_12_HOUR     = {"ריקי", "סימה"}
 
 AGENT_COLORS = {
@@ -101,6 +103,7 @@ def generate_schedule(
     day_off: Dict = None,
     twelve_hour: Dict = None,
     pref_days: Dict = None,
+    recent_history: Dict = None,
 ) -> pd.DataFrame:
     names  = [a["name"] for a in agents if a.get("status", "פעיל") == "פעיל"]
     totals = {a["name"]: a["total"] for a in agents}
@@ -132,6 +135,14 @@ def generate_schedule(
     def pref_score(name, day, shift):
         days_pref = pref.get(name, {}).get(shift, [])
         return 0 if day in days_pref else 1
+        history = recent_history or {}
+
+    def repeat_penalty(name, shift):
+        """החזר ציון גבוה אם הנציג עבד את אותה משמרת הרבה לאחרונה"""
+        if name in EXEMPT_FROM_REPEAT_CHECK:
+            return 0
+        recent_count = history.get(name, {}).get(shift, 0)
+        return 1 if recent_count >= 3 else 0
         
     schedule: Dict[str, Dict[str, str]] = {n: {d: "—" for d in DAYS_ORDER} for n in names}
     assigned_count: Dict[str, int]      = {n: 0 for n in names}
@@ -202,10 +213,11 @@ def generate_schedule(
             primary = [n for n in names if n not in NIGHT_LOVERS]
 
         def sort_key(n):
-            base   = 0 if n in primary else 1
-            div    = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
-            pref_s = pref_score(n, day, shift)
-            return (base, pref_s, div, assigned_count[n])
+            base    = 0 if n in primary else 1
+            div     = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
+            pref_s  = pref_score(n, day, shift)
+            repeat  = repeat_penalty(n, shift)
+            return (base, repeat, pref_s, div, assigned_count[n])
 
         ordered = sorted(names, key=sort_key)
         check   = can_assign_relaxed if use_relaxed else can_assign
