@@ -15,15 +15,87 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800&display=swap');
     html, body, [class*="css"] { font-family: 'Heebo', sans-serif; direction: rtl; }
     .main { background-color: #f8f9fc; }
-    div[data-testid="stSidebar"] { background:#edeaf8; }
-    .stButton > button {
-        background:#7c6fc4; color:white; border-radius:10px;
-        border:none; font-family:'Heebo',sans-serif; font-weight:600;
+
+    /* ===== Sidebar ===== */
+    div[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%) !important;
     }
-    .stButton > button:hover { background:#5c4fa4; }
+    div[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+    div[data-testid="stSidebar"] h1,
+    div[data-testid="stSidebar"] h2,
+    div[data-testid="stSidebar"] h3 {
+        color: white !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        font-weight: 800 !important;
+    }
+    /* Expander - כרטיס נציג */
+    div[data-testid="stSidebar"] div[data-testid="stExpander"] {
+        background: rgba(255,255,255,0.15) !important;
+        backdrop-filter: blur(10px);
+        border-radius: 12px !important;
+        border: 1px solid rgba(255,255,255,0.25) !important;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    div[data-testid="stSidebar"] div[data-testid="stExpander"]:hover {
+        background: rgba(255,255,255,0.25) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    div[data-testid="stSidebar"] div[data-testid="stExpander"] summary {
+        color: white !important;
+        font-weight: 700 !important;
+        padding: 10px !important;
+    }
+    /* Inputs */
+    div[data-testid="stSidebar"] input,
+    div[data-testid="stSidebar"] textarea,
+    div[data-testid="stSidebar"] select {
+        background: rgba(255,255,255,0.95) !important;
+        color: #3d3d5c !important;
+        border-radius: 10px !important;
+        border: none !important;
+        font-weight: 600 !important;
+    }
+    div[data-testid="stSidebar"] label {
+        color: white !important;
+        font-weight: 600 !important;
+    }
+    /* Multiselect tags */
+    div[data-testid="stSidebar"] div[data-baseweb="tag"] {
+        background: linear-gradient(135deg,#fff,#f0eaff) !important;
+        color: #5c4fa4 !important;
+        font-weight: 700 !important;
+    }
+    /* Divider */
+    div[data-testid="stSidebar"] hr {
+        border-color: rgba(255,255,255,0.3) !important;
+    }
+    /* תיקון כיוון כפתור הסגירה של הסיידבר */
+    button[kind="header"] svg,
+    div[data-testid="stSidebarCollapseButton"] svg,
+    [data-testid="collapsedControl"] svg {
+        transform: scaleX(-1);
+    }
+
+    /* ===== Main buttons ===== */
+    .stButton > button {
+        background: linear-gradient(135deg,#7c6fc4,#5c4fa4); color:white;
+        border-radius:10px; border:none;
+        font-family:'Heebo',sans-serif; font-weight:600;
+        box-shadow: 0 4px 15px rgba(124,111,196,0.3);
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(124,111,196,0.4);
+    }
     .alert-box {
         background:#fff3cd; border:1px solid #ffc107; border-radius:8px;
         padding:10px 16px; margin:8px 0; color:#856404; direction:rtl;
