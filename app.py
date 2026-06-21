@@ -294,7 +294,8 @@ with col5:
                     st.session_state.week_notes = entry.get("notes", "")
                     st.success(f"נטען: {chosen} ✅")
                     st.rerun()
-        if st.session_state.schedule_df is not None:
+    
+    if st.session_state.schedule_df is not None:
         df = st.session_state.schedule_df
         alerts = []
         from scheduler import REQUIRED_PER_SHIFT
