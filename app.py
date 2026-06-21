@@ -20,11 +20,16 @@ st.markdown("""
     .main { background-color: #f8f9fc; }
 
     /* ===== Sidebar - כל הסלקטורים האפשריים ===== */
-    section[data-testid="stSidebar"],
-    div[data-testid="stSidebar"],
-    aside[data-testid="stSidebar"],
-    [data-testid="stSidebar"] > div:first-child {
+    section[data-testid="stSidebar"][aria-expanded="true"],
+    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
         background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%) !important;
+    }
+    /* הסתר רוח רפאים של הסיידבר כשסגור */
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+        background: transparent !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        visibility: hidden !important;
     }
 
     [data-testid="stSidebar"] h1,
