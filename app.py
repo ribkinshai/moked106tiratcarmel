@@ -279,7 +279,7 @@ with tab1:
                                 st.session_state.week_label,
                                 st.session_state.week_notes)
                 st.success("נשמר! ✅")
-with col5:
+    with col5:
         archive_for_load = load_archive()
         if archive_for_load:
             week_options = ["— בחר —"] + [e["week"] for e in archive_for_load]
