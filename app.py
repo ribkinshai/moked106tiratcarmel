@@ -104,28 +104,7 @@ st.markdown("""
         background:#fff3cd; border:1px solid #ffc107; border-radius:8px;
         padding:10px 16px; margin:8px 0; color:#856404; direction:rtl;
     }
-/* Neon glow effects */
-    h1, h2 {
-        animation: neon-glow 2.5s ease-in-out infinite alternate;
-    }
-    h3 {
-        animation: subtle-glow 3s ease-in-out infinite alternate;
-    }
-    @keyframes neon-glow {
-        from {
-            filter: drop-shadow(0 0 6px rgba(124,111,196,0.5))
-                    drop-shadow(0 0 12px rgba(240,147,251,0.3));
-        }
-        to {
-            filter: drop-shadow(0 0 14px rgba(124,111,196,0.9))
-                    drop-shadow(0 0 22px rgba(240,147,251,0.7))
-                    drop-shadow(0 0 30px rgba(102,126,234,0.5));
-        }
-    }
-    @keyframes subtle-glow {
-        from { filter: drop-shadow(0 0 3px rgba(124,111,196,0.4)); }
-        to   { filter: drop-shadow(0 0 10px rgba(124,111,196,0.7)); }
-    }
+
     /* כפתורים זוהרים בהובר */
     .stButton > button:hover {
         box-shadow: 0 0 25px rgba(124,111,196,0.6), 0 6px 20px rgba(124,111,196,0.4) !important;
@@ -975,43 +954,7 @@ td span[style*='background'] {{
         st.download_button("📥 הורד סידור כ-CSV", data=output,
                            file_name=f"sidur_{st.session_state.week_label or 'export'}.csv",
                            mime="text/csv")
-# ── ייצוא ל-WhatsApp ──
-        whatsapp_text = f"📋 *מוקד 106 - סידור שבועי*\n📅 {next_week}\n"
-        if st.session_state.week_notes:
-            whatsapp_text += f"📝 {st.session_state.week_notes}\n"
-        whatsapp_text += "\n"
 
-        for day in DAYS_ORDER:
-            whatsapp_text += f"*━━━ {day} ━━━*\n"
-            for shift in SHIFTS:
-                shift_emoji_text = {"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}[shift]
-                hours = SHIFT_HOURS[shift]
-                agents_in_shift = df[df[day] == shift]["שם"].tolist()
-
-                if agents_in_shift:
-                    agents_str_list = []
-                    for ag in agents_in_shift:
-                        key_12 = f"{ag}_{day}"
-                        is_12  = st.session_state.twelve_hour.get(key_12, False)
-                        if is_12 and ag not in NO_12_HOUR:
-                            if shift == "בוקר":
-                                agents_str_list.append(f"{ag} (07:00-19:00)")
-                            elif shift == "לילה":
-                                agents_str_list.append(f"{ag} (19:00-07:00)")
-                            else:
-                                agents_str_list.append(ag)
-                        else:
-                            agents_str_list.append(ag)
-                    agents_str = ", ".join(agents_str_list)
-                    whatsapp_text += f"{shift_emoji_text} {shift} ({hours}): {agents_str}\n"
-                else:
-                    whatsapp_text += f"{shift_emoji_text} {shift} ({hours}): _ריק_\n"
-            whatsapp_text += "\n"
-
-        st.divider()
-        st.markdown("### 📱 ייצוא ל-WhatsApp")
-        st.text_area("טקסט מוכן לשליחה (העתק והדבק לקבוצה)",
-                     value=whatsapp_text, height=300, key="whatsapp_export")
     else:
         st.markdown("""
         <div style='text-align:center;padding:60px 20px;color:#aaa;direction:rtl;'>
