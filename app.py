@@ -104,7 +104,48 @@ st.markdown("""
         background:#fff3cd; border:1px solid #ffc107; border-radius:8px;
         padding:10px 16px; margin:8px 0; color:#856404; direction:rtl;
     }
+/* glow effects */
+    h1, h2, h3 {
+        animation: subtle-glow 3s ease-in-out infinite alternate;
+    }
+    @keyframes subtle-glow {
+        from { filter: drop-shadow(0 0 2px rgba(124,111,196,0.3)); }
+        to   { filter: drop-shadow(0 0 8px rgba(124,111,196,0.6)); }
+    }
+    /* כפתורים זוהרים בהובר */
+    .stButton > button:hover {
+        box-shadow: 0 0 25px rgba(124,111,196,0.6), 0 6px 20px rgba(124,111,196,0.4) !important;
+    }
+    /* טאבים עם זוהר */
+    button[data-baseweb="tab"]:hover {
+        text-shadow: 0 0 12px rgba(124,111,196,0.6);
+    }
+/* Mobile responsive */
+    @media (max-width: 768px) {
+        h1 { font-size: 22px !important; }
+        h2 { font-size: 18px !important; }
+        h3 { font-size: 16px !important; }
+        .stButton > button {
+            font-size: 13px !important;
+            padding: 8px 12px !important;
+        }
+        [data-testid="stMetric"] {
+            padding: 8px !important;
+        }
+        /* טבלת הסידור */
+        table th { font-size: 11px !important; padding: 6px !important; }
+        table td { font-size: 10px !important; padding: 6px !important; min-width: 70px !important; }
+        /* סיידבר ברוחב מלא בנייד */
+        section[data-testid="stSidebar"][aria-expanded="true"] {
+            width: 90vw !important;
+        }
+    }
+    @media (max-width: 480px) {
+        h1 { font-size: 18px !important; }
+        table td { font-size: 9px !important; min-width: 60px !important; }
+    }
 </style>
+
 """, unsafe_allow_html=True)
 
 if "agents" not in st.session_state:
@@ -1044,12 +1085,43 @@ with tab3:
             st.dataframe(pd.DataFrame(cmp_rows).set_index("נציג"), use_container_width=True)
 
 with tab4:
-    st.markdown("### 🗂 ארכיון סידורים")
+    st.markdown("""
+    <h2 style='text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);
+               -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+               background-clip:text;font-weight:800;'>🗂 ארכיון סידורים</h2>
+    """, unsafe_allow_html=True)
+
     archive = load_archive()
     if not archive:
         st.info("אין סידורים שמורים עדיין.")
     else:
+        # חיפוש
+        search = st.text_input("🔍 חפש בארכיון", placeholder="שם נציג, תאריך, או מילת מפתח...")
+
+        filtered = []
         for entry in archive:
+            if not search:
+                filtered.append(entry)
+                continue
+            search_lower = search.lower()
+            # חיפוש בשבוע, תאריך, הערות
+            if (search_lower in entry.get("week", "").lower() or
+                search_lower in entry.get("date", "").lower() or
+                search_lower in entry.get("notes", "").lower()):
+                filtered.append(entry)
+                continue
+            # חיפוש בשמות נציגים
+            for row in entry.get("schedule", []):
+                if search_lower in row.get("שם", "").lower():
+                    filtered.append(entry)
+                    break
+
+        if search and not filtered:
+            st.warning(f"לא נמצאו תוצאות עבור '{search}'")
+        elif search:
+            st.success(f"נמצאו {len(filtered)} תוצאות")
+
+        for entry in filtered:
             with st.expander(f"📅 {entry['week']}  |  {entry['date']}"):
                 if entry.get("notes"):
                     st.markdown(f"📝 {entry['notes']}")
