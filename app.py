@@ -19,78 +19,65 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Heebo', sans-serif; direction: rtl; }
     .main { background-color: #f8f9fc; }
 
-    /* ===== Sidebar ===== */
-    div[data-testid="stSidebar"] {
+    /* ===== Sidebar - כל הסלקטורים האפשריים ===== */
+    section[data-testid="stSidebar"],
+    div[data-testid="stSidebar"],
+    aside[data-testid="stSidebar"],
+    [data-testid="stSidebar"] > div:first-child {
         background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%) !important;
     }
-    div[data-testid="stSidebar"] * {
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div {
         color: white !important;
     }
-    div[data-testid="stSidebar"] h1,
-    div[data-testid="stSidebar"] h2,
-    div[data-testid="stSidebar"] h3 {
-        color: white !important;
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
         text-shadow: 0 2px 8px rgba(0,0,0,0.2);
         font-weight: 800 !important;
     }
-    /* Expander - כרטיס נציג */
-    div[data-testid="stSidebar"] div[data-testid="stExpander"] {
+
+    [data-testid="stSidebar"] details,
+    [data-testid="stSidebar"] [data-testid="stExpander"] {
         background: rgba(255,255,255,0.15) !important;
-        backdrop-filter: blur(10px);
         border-radius: 12px !important;
         border: 1px solid rgba(255,255,255,0.25) !important;
-        margin-bottom: 8px;
+        margin-bottom: 8px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
     }
-    div[data-testid="stSidebar"] div[data-testid="stExpander"]:hover {
-        background: rgba(255,255,255,0.25) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-    div[data-testid="stSidebar"] div[data-testid="stExpander"] summary {
-        color: white !important;
-        font-weight: 700 !important;
-        padding: 10px !important;
-    }
-    /* Inputs */
-    div[data-testid="stSidebar"] input,
-    div[data-testid="stSidebar"] textarea,
-    div[data-testid="stSidebar"] select {
+
+    [data-testid="stSidebar"] input,
+    [data-testid="stSidebar"] textarea {
         background: rgba(255,255,255,0.95) !important;
         color: #3d3d5c !important;
         border-radius: 10px !important;
         border: none !important;
-        font-weight: 600 !important;
-    }
-    div[data-testid="stSidebar"] label {
-        color: white !important;
-        font-weight: 600 !important;
-    }
-    /* Multiselect tags */
-    div[data-testid="stSidebar"] div[data-baseweb="tag"] {
-        background: linear-gradient(135deg,#fff,#f0eaff) !important;
-        color: #5c4fa4 !important;
-        font-weight: 700 !important;
-    }
-    /* Divider */
-    div[data-testid="stSidebar"] hr {
-        border-color: rgba(255,255,255,0.3) !important;
-    }
-    /* תיקון כיוון כפתור הסגירה של הסיידבר */
-    button[kind="header"] svg,
-    div[data-testid="stSidebarCollapseButton"] svg,
-    [data-testid="collapsedControl"] svg {
-        transform: scaleX(-1);
     }
 
-    /* ===== Main buttons ===== */
+    [data-testid="stSidebar"] hr {
+        border-color: rgba(255,255,255,0.3) !important;
+    }
+
+    /* כפתור סגירה - הופך כיוון */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
+    button[kind="header"] {
+        transform: scaleX(-1) !important;
+    }
+
+    /* כפתורים ראשיים */
     .stButton > button {
-        background: linear-gradient(135deg,#7c6fc4,#5c4fa4); color:white;
+        background: linear-gradient(135deg,#7c6fc4,#5c4fa4); color:white !important;
         border-radius:10px; border:none;
         font-family:'Heebo',sans-serif; font-weight:600;
         box-shadow: 0 4px 15px rgba(124,111,196,0.3);
-        transition: all 0.3s ease;
     }
     .stButton > button:hover {
         transform: translateY(-2px);
