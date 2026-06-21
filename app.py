@@ -239,7 +239,7 @@ with tab1:
     if st.session_state.week_notes:
         st.markdown(f"📝 {st.session_state.week_notes}")
 
-    col1, col2, col3, col4 = st.columns([2,1,1,1])
+    col1, col2, col3, col4, col5 = st.columns([2,1,1,1,1.5])
     with col1:
         if st.button("⚡ צור סידור אוטומטי", use_container_width=True):
             day_off_map = {a["name"]: a.get("day_off",[]) for a in st.session_state.agents}
@@ -279,7 +279,22 @@ with tab1:
                                 st.session_state.week_label,
                                 st.session_state.week_notes)
                 st.success("נשמר! ✅")
-
+with col5:
+        archive_for_load = load_archive()
+        if archive_for_load:
+            week_options = ["— בחר —"] + [e["week"] for e in archive_for_load]
+            chosen = st.selectbox("📂 טען מארכיון", week_options,
+                                   key="load_archive_select",
+                                   label_visibility="collapsed")
+            if chosen != "— בחר —":
+                entry = next((e for e in archive_for_load if e["week"] == chosen), None)
+                if entry and st.button("📂 טען", use_container_width=True, key="load_archive_btn"):
+                    st.session_state.schedule_df = archive_to_df(entry)
+                    st.session_state.week_label = entry["week"]
+                    st.session_state.week_notes = entry.get("notes", "")
+                    st.success(f"נטען: {chosen} ✅")
+                    st.rerun()
+    
     if st.session_state.schedule_df is not None:
         df = st.session_state.schedule_df
         alerts = []
