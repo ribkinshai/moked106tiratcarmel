@@ -285,6 +285,20 @@ with tab1:
                 }
                 for a in st.session_state.agents
             }
+
+            # היסטוריה מ-3 שבועות אחרונים
+            recent_archive = load_archive()[:3]
+            history_map = {}
+            for entry in recent_archive:
+                for row in entry.get("schedule", []):
+                    name = row["שם"]
+                    if name not in history_map:
+                        history_map[name] = {"בוקר": 0, "ערב": 0, "לילה": 0}
+                    for d in DAYS_ORDER:
+                        s = row.get(d, "—")
+                        if s in history_map[name]:
+                            history_map[name][s] += 1
+
             with st.spinner("מחשב סידור..."):
                 df = generate_schedule(
                     st.session_state.agents, DAYS_ORDER,
@@ -292,6 +306,7 @@ with tab1:
                     day_off=day_off_map,
                     twelve_hour=st.session_state.twelve_hour,
                     pref_days=pref_map,
+                    recent_history=history_map,
                 )
                 st.session_state.schedule_df = df
                 st.session_state.edit_mode   = False
@@ -346,6 +361,36 @@ with tab1:
                     required = max(0, required - twelve_count)
                 if count < required:
                     alerts.append(f"⚠️ {day} – {shift}: {count}/{required} נציגים")
+        # התראות על משמרות חוזרות
+        exempt_agents = {"גיא", "לב", "סימה", "אלינור", "איתי", "שרית", "ריקי", "אדיר"}
+        recent_archive = load_archive()[:3]
+        history_map = {}
+        for entry in recent_archive:
+            for row in entry.get("schedule", []):
+                name = row["שם"]
+                if name not in history_map:
+                    history_map[name] = {"בוקר": 0, "ערב": 0, "לילה": 0}
+                for d in DAYS_ORDER:
+                    s = row.get(d, "—")
+                    if s in history_map[name]:
+                        history_map[name][s] += 1
+
+        # בדיקה לשבוע הנוכחי
+        for _, row in df.iterrows():
+            name = row["שם"]
+            if name in exempt_agents:
+                continue
+            if name not in history_map:
+                continue
+            for shift in ["בוקר", "ערב", "לילה"]:
+                current_count = sum(1 for d in DAYS_ORDER if row[d] == shift)
+                past_count = history_map[name].get(shift, 0)
+                total = current_count + past_count
+                if past_count >= 3 and current_count >= 2:
+                    alerts.append(
+                        f"🔁 {name} עבד {past_count} משמרות {shift} ב-3 שבועות אחרונים "
+                        f"וגם השבוע {current_count} – שווה לשקול לשנות"
+                    )
         if alerts:
             st.markdown("### ⚠️ התראות")
             for a in alerts:
