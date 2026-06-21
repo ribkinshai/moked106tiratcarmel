@@ -104,13 +104,27 @@ st.markdown("""
         background:#fff3cd; border:1px solid #ffc107; border-radius:8px;
         padding:10px 16px; margin:8px 0; color:#856404; direction:rtl;
     }
-/* glow effects */
-    h1, h2, h3 {
+/* Neon glow effects */
+    h1, h2 {
+        animation: neon-glow 2.5s ease-in-out infinite alternate;
+    }
+    h3 {
         animation: subtle-glow 3s ease-in-out infinite alternate;
     }
+    @keyframes neon-glow {
+        from {
+            filter: drop-shadow(0 0 6px rgba(124,111,196,0.5))
+                    drop-shadow(0 0 12px rgba(240,147,251,0.3));
+        }
+        to {
+            filter: drop-shadow(0 0 14px rgba(124,111,196,0.9))
+                    drop-shadow(0 0 22px rgba(240,147,251,0.7))
+                    drop-shadow(0 0 30px rgba(102,126,234,0.5));
+        }
+    }
     @keyframes subtle-glow {
-        from { filter: drop-shadow(0 0 2px rgba(124,111,196,0.3)); }
-        to   { filter: drop-shadow(0 0 8px rgba(124,111,196,0.6)); }
+        from { filter: drop-shadow(0 0 3px rgba(124,111,196,0.4)); }
+        to   { filter: drop-shadow(0 0 10px rgba(124,111,196,0.7)); }
     }
     /* כפתורים זוהרים בהובר */
     .stButton > button:hover {
@@ -882,6 +896,63 @@ td span[style*='background'] {{
                             height:100%;width:{fairness_score}%;border-radius:10px;'></div>
             </div>
             """, unsafe_allow_html=True)
+        # ── פרופיל נציג ──
+        st.divider()
+        st.markdown("### 🔍 פרופיל נציג")
+        agent_names = df["שם"].tolist()
+        selected_agent = st.selectbox("בחר נציג להצגה", ["— בחר —"] + agent_names,
+                                       key="profile_select")
+
+        if selected_agent != "— בחר —":
+            agent_row = df[df["שם"] == selected_agent].iloc[0]
+            ag_color = AGENT_COLORS.get(selected_agent, "#eee")
+
+            morning_days = [d for d in DAYS_ORDER if agent_row[d] == "בוקר"]
+            evening_days = [d for d in DAYS_ORDER if agent_row[d] == "ערב"]
+            night_days   = [d for d in DAYS_ORDER if agent_row[d] == "לילה"]
+            off_days     = [d for d in DAYS_ORDER if agent_row[d] == "—"]
+
+            profile_html = f"""
+            <div style='background:linear-gradient(135deg,{ag_color}40,{ag_color}80);
+                        border-radius:20px;padding:24px;
+                        box-shadow:0 8px 30px rgba(0,0,0,0.1);'>
+                <div style='display:flex;align-items:center;gap:16px;margin-bottom:20px;'>
+                    <div style='background:{ag_color};width:60px;height:60px;
+                                border-radius:50%;display:flex;align-items:center;
+                                justify-content:center;font-size:28px;font-weight:800;
+                                color:#3d3d5c;box-shadow:0 4px 15px rgba(0,0,0,0.15);'>
+                        {selected_agent[0]}
+                    </div>
+                    <div>
+                        <h2 style='margin:0;color:#3d3d5c;font-weight:800;'>{selected_agent}</h2>
+                        <p style='margin:0;color:#666;'>סה״כ {agent_row["סה״כ"]} משמרות השבוע</p>
+                    </div>
+                </div>
+                <div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;'>
+                    <div style='background:white;padding:14px;border-radius:14px;
+                                box-shadow:0 4px 12px rgba(0,0,0,0.05);'>
+                        <div style='color:#10b981;font-weight:800;margin-bottom:8px;'>☀️ בוקר ({len(morning_days)})</div>
+                        <div style='font-size:13px;color:#555;'>{', '.join(morning_days) if morning_days else '—'}</div>
+                    </div>
+                    <div style='background:white;padding:14px;border-radius:14px;
+                                box-shadow:0 4px 12px rgba(0,0,0,0.05);'>
+                        <div style='color:#f59e0b;font-weight:800;margin-bottom:8px;'>🌤 ערב ({len(evening_days)})</div>
+                        <div style='font-size:13px;color:#555;'>{', '.join(evening_days) if evening_days else '—'}</div>
+                    </div>
+                    <div style='background:white;padding:14px;border-radius:14px;
+                                box-shadow:0 4px 12px rgba(0,0,0,0.05);'>
+                        <div style='color:#8b5cf6;font-weight:800;margin-bottom:8px;'>🌙 לילה ({len(night_days)})</div>
+                        <div style='font-size:13px;color:#555;'>{', '.join(night_days) if night_days else '—'}</div>
+                    </div>
+                    <div style='background:white;padding:14px;border-radius:14px;
+                                box-shadow:0 4px 12px rgba(0,0,0,0.05);'>
+                        <div style='color:#999;font-weight:800;margin-bottom:8px;'>🏖 חופש ({len(off_days)})</div>
+                        <div style='font-size:13px;color:#555;'>{', '.join(off_days) if off_days else '—'}</div>
+                    </div>
+                </div>
+            </div>
+            """
+            st.markdown(profile_html, unsafe_allow_html=True)
         st.divider()
         st.markdown("### 👤 סטטוס מכסה")
         scols = st.columns(len(st.session_state.agents))
@@ -904,7 +975,43 @@ td span[style*='background'] {{
         st.download_button("📥 הורד סידור כ-CSV", data=output,
                            file_name=f"sidur_{st.session_state.week_label or 'export'}.csv",
                            mime="text/csv")
+# ── ייצוא ל-WhatsApp ──
+        whatsapp_text = f"📋 *מוקד 106 - סידור שבועי*\n📅 {next_week}\n"
+        if st.session_state.week_notes:
+            whatsapp_text += f"📝 {st.session_state.week_notes}\n"
+        whatsapp_text += "\n"
 
+        for day in DAYS_ORDER:
+            whatsapp_text += f"*━━━ {day} ━━━*\n"
+            for shift in SHIFTS:
+                shift_emoji_text = {"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}[shift]
+                hours = SHIFT_HOURS[shift]
+                agents_in_shift = df[df[day] == shift]["שם"].tolist()
+
+                if agents_in_shift:
+                    agents_str_list = []
+                    for ag in agents_in_shift:
+                        key_12 = f"{ag}_{day}"
+                        is_12  = st.session_state.twelve_hour.get(key_12, False)
+                        if is_12 and ag not in NO_12_HOUR:
+                            if shift == "בוקר":
+                                agents_str_list.append(f"{ag} (07:00-19:00)")
+                            elif shift == "לילה":
+                                agents_str_list.append(f"{ag} (19:00-07:00)")
+                            else:
+                                agents_str_list.append(ag)
+                        else:
+                            agents_str_list.append(ag)
+                    agents_str = ", ".join(agents_str_list)
+                    whatsapp_text += f"{shift_emoji_text} {shift} ({hours}): {agents_str}\n"
+                else:
+                    whatsapp_text += f"{shift_emoji_text} {shift} ({hours}): _ריק_\n"
+            whatsapp_text += "\n"
+
+        st.divider()
+        st.markdown("### 📱 ייצוא ל-WhatsApp")
+        st.text_area("טקסט מוכן לשליחה (העתק והדבק לקבוצה)",
+                     value=whatsapp_text, height=300, key="whatsapp_export")
     else:
         st.markdown("""
         <div style='text-align:center;padding:60px 20px;color:#aaa;direction:rtl;'>
