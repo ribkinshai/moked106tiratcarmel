@@ -551,12 +551,56 @@ with tab1:
                                 st.session_state.watcher[watcher_key] = ag
                                 st.rerun()
 
-                    # הוספת נציג
+                    # הוספת נציג – מחולק לרשימת המתנה ופנויים
                     with cols[len(agents_in)+1]:
                         if free_agents:
-                            add = st.selectbox("➕", ["—"]+free_agents,
+                            # רשימת המתנה – נציגים שלא הגיעו למכסה
+                            waiting_list = []
+                            available = []
+                            for n in free_agents:
+                                ag_obj = next((a for a in st.session_state.agents
+                                                if a["name"] == n), None)
+                                if ag_obj:
+                                    n_total = ag_obj.get("total", 0)
+                                    filled  = sum(1 for d in DAYS_ORDER
+                                                  if edited_data[n].get(d,"—") != "—")
+                                    if filled < n_total:
+                                        waiting_list.append((n, n_total - filled))
+                                    else:
+                                        available.append(n)
+
+                            # מיון רשימת המתנה לפי מי שחסר לו הכי הרבה
+                            waiting_list.sort(key=lambda x: x[1], reverse=True)
+
+                            options = ["—"]
+                            if waiting_list:
+                                options.append("━━ רשימת המתנה ━━")
+                                for n, missing in waiting_list:
+                                    options.append(f"⏳ {n} (חסר {missing})")
+                            if available:
+                                options.append("━━ פנויים ━━")
+                                options.extend(available)
+
+                            add = st.selectbox("➕", options,
                                                key=f"add_{day}_{shift}",
                                                label_visibility="collapsed")
+
+                            # נקה את הטקסט המעוצב
+                            clean_name = add
+                            if add.startswith("⏳ "):
+                                clean_name = add.replace("⏳ ", "").split(" (חסר")[0]
+
+                            if add != "—" and not add.startswith("━━"):
+                                if clean_name in [n for n, _ in waiting_list] or clean_name in available:
+                                    edited_data[clean_name][day] = shift
+                                    new_rows = []
+                                    for a in all_agents:
+                                        if a in edited_data:
+                                            row = edited_data[a]
+                                            row["סה״כ"] = sum(1 for d in DAYS_ORDER if row.get(d,"—") != "—")
+                                            new_rows.append(row)
+                                    st.session_state.schedule_df = pd.DataFrame(new_rows)
+                                    st.rerun()
                             if add != "—":
                                 edited_data[add][day] = shift
                                 new_rows = []
