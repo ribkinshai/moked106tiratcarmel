@@ -796,7 +796,19 @@ td span[style*='background'] {{
 }}
 @media print {{
     .print-btn {{ display:none; }}
-    @page {{ size: landscape; margin: 0.5cm; }}
+    @page {{ size: A4 landscape; margin: 0.3cm; }}
+    body {{ padding: 5px !important; }}
+    .header h1 {{ font-size: 18px !important; }}
+    .header h2 {{ font-size: 13px !important; }}
+    table {{ border-spacing: 3px !important; }}
+    th {{ padding: 6px !important; font-size: 11px !important; }}
+    td {{ padding: 6px !important; min-width: 80px !important; }}
+    td b {{ font-size: 11px !important; }}
+    small {{ font-size: 9px !important; }}
+    td span[style*='background'] {{
+        padding: 3px 6px !important;
+        font-size: 10px !important;
+    }}
 }}
 </style></head><body>
 <button class='print-btn' onclick='window.print()'>🖨️ הדפס</button>
