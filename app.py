@@ -65,10 +65,14 @@ st.markdown("""
         border-color: rgba(255,255,255,0.3) !important;
     }
 
-    /* כפתור סגירה - הופך כיוון */
-    [data-testid="stSidebarCollapsedControl"],
+    /* כפתור סגירה/פתיחה של הסיידבר - הופך כיוון */
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="stSidebarCollapseButton"] button,
     [data-testid="collapsedControl"],
-    button[kind="header"] {
+    [data-testid="baseButton-header"],
+    [data-testid="baseButton-headerNoPadding"],
+    button[kind="header"],
+    button[kind="headerNoPadding"] {
         transform: scaleX(-1) !important;
     }
 
