@@ -382,7 +382,7 @@ with tab1:
                 continue
             if name not in history_map:
                 continue
-            for shift in ["בוקר", "ערב", "לילה"]:
+            for shift in ["ערב", "לילה"]:
                 current_count = sum(1 for d in DAYS_ORDER if row[d] == shift)
                 past_count = history_map[name].get(shift, 0)
                 total = current_count + past_count
