@@ -231,12 +231,38 @@ with st.sidebar:
                                            default=agent.get("pref_evening",[]), key=f"pe_{i}")
             pref_night   = st.multiselect("🌙 לילה", DAYS_ORDER,
                                            default=agent.get("pref_night",[]),   key=f"pn_{i}")
+            # שבת רביעית – אוטומטי לפי היסטוריה או ידני
+            recent_3 = load_archive()[:3]
+            auto_4th = False
+            if len(recent_3) >= 3:
+                worked_weekend = 0
+                weekend_shifts = [("שישי","ערב"), ("שישי","לילה"), ("שבת","בוקר"), ("שבת","ערב")]
+                for entry in recent_3:
+                    for row in entry.get("schedule", []):
+                        if row["שם"] != agent["name"]:
+                            continue
+                        if any(row.get(d) == s for d, s in weekend_shifts):
+                            worked_weekend += 1
+                            break
+                if worked_weekend >= 3:
+                    auto_4th = True
+
+            current_4th = agent.get("fourth_weekend_off", auto_4th)
+            fourth_off = st.toggle(
+                f"🛌 שבת רביעית (לא לשבץ סופ״ש)",
+                value=current_4th,
+                key=f"fourth_{i}",
+                help="אסור לשבץ בשישי ערב/לילה ובשבת בוקר/ערב"
+            )
+            if auto_4th and not current_4th:
+                st.caption("⚠️ אוטומטית: עבד 3 סופ\"שים ברצף")
             updated_agents.append({
                 **agent,
                 "status": status, "total": total, "day_off": day_off,
                 "pref_morning": pref_morning,
                 "pref_evening": pref_evening,
                 "pref_night":   pref_night,
+                "fourth_weekend_off": fourth_off,
             })
     st.session_state.agents = updated_agents
 
@@ -277,6 +303,14 @@ with tab1:
     with col1:
         if st.button("⚡ צור סידור אוטומטי", use_container_width=True):
             day_off_map = {a["name"]: a.get("day_off",[]) for a in st.session_state.agents}
+            # שבת רביעית - איסורים
+            extra_forb_map = {}
+            for a in st.session_state.agents:
+                if a.get("fourth_weekend_off", False):
+                    extra_forb_map[a["name"]] = [
+                        ("שישי", "ערב"), ("שישי", "לילה"),
+                        ("שבת", "בוקר"), ("שבת", "ערב"),
+                    ]
             pref_map = {
                 a["name"]: {
                     "בוקר": a.get("pref_morning", []),
@@ -307,6 +341,7 @@ with tab1:
                     twelve_hour=st.session_state.twelve_hour,
                     pref_days=pref_map,
                     recent_history=history_map,
+                    extra_forbidden=extra_forb_map,
                 )
                 st.session_state.schedule_df = df
                 st.session_state.edit_mode   = False
