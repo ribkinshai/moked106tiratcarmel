@@ -860,12 +860,24 @@ td {{
 .cell-night   {{ background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 100%); color:#2e1065; }}
 td b {{ font-weight:800; font-size:14px; }}
 small {{ font-size:11px; opacity:0.8; }}
-td span[style*='background'] {{
+td span {{
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    padding: 12px 20px !important;
+    border-radius: 12px !important;
     background: linear-gradient(180deg, white, #f5f5fa) !important;
-    color:#3d3d5c !important;
+    color: #3d3d5c !important;
     box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
-    border-radius:10px !important; padding:10px 18px !important;
-    font-weight:800 !important; font-size:18px !important;
+    display: inline-block;
+    margin: 4px 2px;
+}}
+td span span {{
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    margin: 0 !important;
 }}
 .print-btn {{
     background:#7c6fc4; color:white; border:none;
