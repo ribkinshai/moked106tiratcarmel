@@ -470,7 +470,7 @@ with tab1:
                     cells.append(
                         f"<span style='background:{color};border-radius:6px;"
                         f"padding:3px 12px;display:inline-block;margin:6px 2px 2px 2px;"
-                        font-size:14px;font-weight:600;'>"
+                        "font-size:14px;font-weight:600;'>"
                         f"{ag}{watcher_badge}"
                         f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_display}</span>"
                         f"</span>"
