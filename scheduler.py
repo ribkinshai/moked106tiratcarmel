@@ -85,6 +85,11 @@ FORBIDDEN_DEFAULT = {
 
 NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית", "לירון"}
+# מכסות לילה מתחלפות בין שבועות
+LEV_ELINOR_PATTERN = {
+    "A": {"לב": 4, "אלינור": 3},  # שבוע A
+    "B": {"לב": 5, "אלינור": 2},  # שבוע B
+}
 # נציגים שמוחרגים מבדיקת חזרות (ביקשו לעבוד רק לילות/משמרת קבועה)
 EXEMPT_FROM_REPEAT_CHECK = {"גיא", "לב", "סימה", "אלינור", "איתי", "שרית", "ריקי", "אדיר"}
 NO_12_HOUR     = {"ריקי", "סימה"}
@@ -114,10 +119,16 @@ def generate_schedule(
     twelve_hour: Dict = None,
     pref_days: Dict = None,
     recent_history: Dict = None,
+    week_type: str = "A",
 ) -> pd.DataFrame:
     names  = [a["name"] for a in agents if a.get("status", "פעיל") == "פעיל"]
     totals = {a["name"]: a["total"] for a in agents}
-
+    # עדכון מכסות לילה ללב ואלינור לפי סוג השבוע
+    pattern = LEV_ELINOR_PATTERN.get(week_type, LEV_ELINOR_PATTERN["A"])
+    for name, qty in pattern.items():
+        if name in totals:
+            totals[name] = qty
+    
     forbidden_local = copy.deepcopy(FORBIDDEN_DEFAULT)
 
     if extra_forbidden:
