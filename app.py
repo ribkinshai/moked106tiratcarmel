@@ -342,6 +342,7 @@ with tab1:
                     pref_days=pref_map,
                     recent_history=history_map,
                     extra_forbidden=extra_forb_map,
+                    week_type=week_type,
                 )
                 st.session_state.schedule_df = df
                 st.session_state.edit_mode   = False
