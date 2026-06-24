@@ -470,7 +470,7 @@ with tab1:
                     cells.append(
                         f"<span style='background:{color};border-radius:6px;"
                         f"padding:3px 12px;display:inline-block;margin:6px 2px 2px 2px;"
-                        f"font-size:12px;font-weight:600;'>"
+                        font-size:14px;font-weight:600;'>"
                         f"{ag}{watcher_badge}"
                         f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_display}</span>"
                         f"</span>"
@@ -529,8 +529,9 @@ with tab1:
                 color:#3d3d5c !important;
                 box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
                 border-radius:10px !important;
-                padding:6px 10px !important;
+                padding:8px 14px !important;
                 font-weight:700 !important;
+                font-size:15px !important;
             }}
         </style></head><body>
         <table>
@@ -755,7 +756,7 @@ with tab1:
                     cells.append(
                         f"<span style='background:{color};border-radius:6px;"
                         f"padding:3px 8px;display:inline-block;margin:2px;"
-                        f"font-size:12px;font-weight:600'>"
+                        font-size:14px;font-weight:600'>"
                         f"{ag}{watcher_badge}"
                         f"<span style='font-weight:400;font-size:10px;color:#555'>{hours_tag}</span>"
                         f"{note_html}</span>"
@@ -814,8 +815,9 @@ with tab1:
                 color:#3d3d5c !important;
                 box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
                 border-radius:10px !important;
-                padding:6px 10px !important;
+                padding:8px 14px !important;
                 font-weight:700 !important;
+                font-size:15px !important;
             }}
         </style></head><body>
         <table>
@@ -864,8 +866,8 @@ td span[style*='background'] {{
     background: linear-gradient(180deg, white, #f5f5fa) !important;
     color:#3d3d5c !important;
     box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
-    border-radius:10px !important; padding:6px 10px !important;
-    font-weight:700 !important;
+    border-radius:10px !important; padding:8px 14px !important;
+    font-weight:700 !important; font-size:14px !important;
 }}
 .print-btn {{
     background:#7c6fc4; color:white; border:none;
