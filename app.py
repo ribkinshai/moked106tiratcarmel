@@ -897,9 +897,15 @@ td span span {{
     td {{ padding: 6px !important; min-width: 80px !important; }}
     td b {{ font-size: 11px !important; }}
     small {{ font-size: 9px !important; }}
-    td span[style*='background'] {{
-        padding: 3px 6px !important;
-        font-size: 10px !important;
+    td span {{
+        padding: 8px 14px !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+    }}
+    td span span {{
+        padding: 0 !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
     }}
 }}
 </style></head><body>
