@@ -866,7 +866,7 @@ td span[style*='background'] {{
     background: linear-gradient(180deg, white, #f5f5fa) !important;
     color:#3d3d5c !important;
     box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
-    border-radius:10px !important; padding:8px 14px !important;
+    border-radius:14px !important; padding:12px 16px !important;
     font-weight:700 !important; font-size:18px !important;
 }}
 .print-btn {{
