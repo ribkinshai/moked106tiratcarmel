@@ -187,12 +187,12 @@ def generate_schedule(
             if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
                 return False
         # חוק שישי/שבת – עדיפות, לא חובה מוחלטת
-        # שישי לילה חוסם שבת בוקר/ערב (לא צהריים)
-        # שישי ערב לא חוסם שבת (יכול לעבוד שבת בוקר או צהריים)
-        if day == "שבת" and shift in ("בוקר", "ערב") and schedule[name]["שישי"] == "לילה":
+        # שישי לילה → שבת ערב (אסור שבת בוקר אחרי לילה)
+        if day == "שבת" and shift == "בוקר" and schedule[name]["שישי"] == "לילה":
             return False
-        if day == "שישי" and shift == "לילה" and schedule[name]["שבת"] in ("בוקר", "ערב"):
+        if day == "שישי" and shift == "לילה" and schedule[name]["שבת"] == "בוקר":
             return False
+        return True
         return True
 
     def can_assign_relaxed(name, day, shift):
@@ -240,12 +240,29 @@ def generate_schedule(
             div     = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
             pref_s  = pref_score(n, day, shift)
             repeat  = repeat_penalty(n, shift)
-            # בונוס לעדיפות אם הנציג כבר עובד בסופ"ש זה
+
+            # זיהוי נציגים שעבדו סופ"ש קודם (לפי היסטוריה)
+            worked_last_weekend = 0
+            past = history.get(n, {})
+            # אם הנציג עבד הרבה משמרות סופ"ש בעבר → עדיפות נמוכה השבוע
+            past_weekend_total = past.get("ערב", 0) + past.get("לילה", 0)
+            if past_weekend_total >= 2 and day in ("שישי", "שבת"):
+                worked_last_weekend = 2  # עדיפות נמוכה לסופ"ש זה
+
+            # בונוס לרכז – אם הנציג כבר עובד בסופ"ש זה, תן לו עדיפות לעוד משמרת
             weekend_bonus = 0
             if day in ("שישי", "שבת"):
                 if schedule[n]["שישי"] != "—" or schedule[n]["שבת"] != "—":
-                    weekend_bonus = -1  # עדיפות גבוהה לרכז
-            return (base, weekend_bonus, repeat, pref_s, div, assigned_count[n])
+                    weekend_bonus = -2  # עדיפות הכי גבוהה לרכז
+
+                # התאמה: מי שעבד שישי ערב → עדיפות לשבת בוקר
+                if day == "שבת" and shift == "בוקר" and schedule[n]["שישי"] == "ערב":
+                    weekend_bonus = -3
+                # מי שעבד שישי לילה → עדיפות לשבת ערב
+                if day == "שבת" and shift == "ערב" and schedule[n]["שישי"] == "לילה":
+                    weekend_bonus = -3
+
+            return (base, worked_last_weekend, weekend_bonus, repeat, pref_s, div, assigned_count[n])
 
         ordered = sorted(names, key=sort_key)
         check   = can_assign_relaxed if use_relaxed else can_assign
