@@ -197,12 +197,12 @@ def generate_schedule(
             return False
         if day == "שישי" and shift == "לילה" and schedule[name]["שבת"] == "בוקר":
             return False
-            # חסימת מי שעבד סופ"ש קודם
-        if name in last_weekend_workers and (
-            (day == "שישי" and shift in ("ערב", "לילה")) or
-            (day == "שבת" and shift in ("בוקר", "ערב"))
-        ):
-            return False
+            # # חסימת מי שעבד סופ"ש קודם
+        # if name in last_weekend_workers and (
+        #     (day == "שישי" and shift in ("ערב", "לילה")) or
+        #     (day == "שבת" and shift in ("בוקר", "ערב"))
+        # ):
+        #     return False
         return True
         
 
