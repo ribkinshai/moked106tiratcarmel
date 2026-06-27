@@ -333,6 +333,17 @@ with tab1:
                         if s in history_map[name]:
                             history_map[name][s] += 1
 
+            # זיהוי סוג השבוע (A או B) לפי הסידור האחרון בארכיון
+            week_type = "A"
+            if recent_archive:
+                last_entry = recent_archive[0]
+                lev_nights = 0
+                for row in last_entry.get("schedule", []):
+                    if row["שם"] == "לב":
+                        lev_nights = sum(1 for d in DAYS_ORDER if row.get(d) == "לילה")
+                        break
+                week_type = "A" if lev_nights >= 5 else "B"
+
             with st.spinner("מחשב סידור..."):
                 df = generate_schedule(
                     st.session_state.agents, DAYS_ORDER,
