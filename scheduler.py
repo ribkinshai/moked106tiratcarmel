@@ -187,10 +187,11 @@ def generate_schedule(
             if schedule[name][DAYS_ORDER[day_idx - 1]] == "לילה":
                 return False
         # חוק שישי/שבת – עדיפות, לא חובה מוחלטת
-        # שישי ערב/לילה חוסם שבת
-        if day == "שישי" and shift in ("ערב", "לילה") and schedule[name]["שבת"] != "—":
+        # שישי לילה חוסם שבת בוקר/ערב (לא צהריים)
+        # שישי ערב לא חוסם שבת (יכול לעבוד שבת בוקר או צהריים)
+        if day == "שבת" and shift in ("בוקר", "ערב") and schedule[name]["שישי"] == "לילה":
             return False
-        if day == "שבת" and schedule[name]["שישי"] in ("ערב", "לילה"):
+        if day == "שישי" and shift == "לילה" and schedule[name]["שבת"] in ("בוקר", "ערב"):
             return False
         return True
 
@@ -239,7 +240,12 @@ def generate_schedule(
             div     = diversity_score(n, shift) if n in DIVERSE_AGENTS else 0
             pref_s  = pref_score(n, day, shift)
             repeat  = repeat_penalty(n, shift)
-            return (base, repeat, pref_s, div, assigned_count[n])
+            # בונוס לעדיפות אם הנציג כבר עובד בסופ"ש זה
+            weekend_bonus = 0
+            if day in ("שישי", "שבת"):
+                if schedule[n]["שישי"] != "—" or schedule[n]["שבת"] != "—":
+                    weekend_bonus = -1  # עדיפות גבוהה לרכז
+            return (base, weekend_bonus, repeat, pref_s, div, assigned_count[n])
 
         ordered = sorted(names, key=sort_key)
         check   = can_assign_relaxed if use_relaxed else can_assign
