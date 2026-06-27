@@ -295,17 +295,48 @@ def generate_schedule(
             if can_assign_relaxed(agent_name, day, shift):
                 assign(agent_name, day, shift)
 
-    # ── שלב 2: מילוי שישי ושבת קודם ──
-    for day in ["שישי", "שבת"]:
-        for shift in SHIFTS:
-            if shift == "ערב":
-                required = required_evening(day)
-            else:
-                required = REQUIRED_PER_SHIFT[day][shift]
-            already = sum(1 for n in names if schedule[n][day] == shift)
-            needed  = required - already
-            if needed > 0:
-                fill_shift(day, shift, needed, use_relaxed=False)
+    # ── שלב 2: מילוי שישי קודם ──
+    for shift in SHIFTS:
+        if shift == "ערב":
+            required = required_evening("שישי")
+        else:
+            required = REQUIRED_PER_SHIFT["שישי"][shift]
+        already = sum(1 for n in names if schedule[n]["שישי"] == shift)
+        needed  = required - already
+        if needed > 0:
+            fill_shift("שישי", shift, needed, use_relaxed=False)
+
+    # ── שלב 2.5: שיבוץ אוטומטי לשבת לפי שישי ──
+    # מי שעבד שישי ערב → לשבת בוקר
+    friday_evening_workers = [n for n in names if schedule[n]["שישי"] == "ערב"]
+    saturday_morning_needed = REQUIRED_PER_SHIFT["שבת"]["בוקר"]
+    for n in friday_evening_workers:
+        if saturday_morning_needed <= 0:
+            break
+        if can_assign(n, "שבת", "בוקר"):
+            assign(n, "שבת", "בוקר")
+            saturday_morning_needed -= 1
+
+    # מי שעבד שישי לילה → לשבת ערב
+    friday_night_workers = [n for n in names if schedule[n]["שישי"] == "לילה"]
+    saturday_evening_needed = required_evening("שבת")
+    for n in friday_night_workers:
+        if saturday_evening_needed <= 0:
+            break
+        if can_assign(n, "שבת", "ערב"):
+            assign(n, "שבת", "ערב")
+            saturday_evening_needed -= 1
+
+    # ── שלב 2.6: השלמת שבת ──
+    for shift in SHIFTS:
+        if shift == "ערב":
+            required = required_evening("שבת")
+        else:
+            required = REQUIRED_PER_SHIFT["שבת"][shift]
+        already = sum(1 for n in names if schedule[n]["שבת"] == shift)
+        needed  = required - already
+        if needed > 0:
+            fill_shift("שבת", shift, needed, use_relaxed=False)
 
     # ── שלב 3: מילוי ימי חול ──
     for day in ["ראשון", "שני", "שלישי", "רביעי", "חמישי"]:
