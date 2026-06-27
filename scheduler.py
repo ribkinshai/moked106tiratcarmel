@@ -159,6 +159,11 @@ def generate_schedule(
 
     history = recent_history or {}
 
+    # זיהוי נציגים שעבדו בסופ"ש הקודם (מהארכיון)
+    last_weekend_workers = set()
+    if recent_history and isinstance(recent_history, dict):
+        last_weekend_workers = recent_history.get("__last_weekend__", set())
+
     def repeat_penalty(name, shift):
         """החזר ציון גבוה אם הנציג עבד את אותה משמרת הרבה לאחרונה"""
         if name in EXEMPT_FROM_REPEAT_CHECK:
@@ -192,8 +197,14 @@ def generate_schedule(
             return False
         if day == "שישי" and shift == "לילה" and schedule[name]["שבת"] == "בוקר":
             return False
+            # חסימת מי שעבד סופ"ש קודם
+        if name in last_weekend_workers and (
+            (day == "שישי" and shift in ("ערב", "לילה")) or
+            (day == "שבת" and shift in ("בוקר", "ערב"))
+        ):
+            return False
         return True
-        return True
+        
 
     def can_assign_relaxed(name, day, shift):
         """ללא חוק שישי/שבת – לשימוש בשלב השלמה"""
