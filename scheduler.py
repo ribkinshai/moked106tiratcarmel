@@ -156,7 +156,8 @@ def generate_schedule(
     def pref_score(name, day, shift):
         days_pref = pref.get(name, {}).get(shift, [])
         return 0 if day in days_pref else 1
-        history = recent_history or {}
+
+    history = recent_history or {}
 
     def repeat_penalty(name, shift):
         """החזר ציון גבוה אם הנציג עבד את אותה משמרת הרבה לאחרונה"""
