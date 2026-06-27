@@ -332,6 +332,17 @@ with tab1:
                         s = row.get(d, "—")
                         if s in history_map[name]:
                             history_map[name][s] += 1
+                            # זיהוי נציגים שעבדו בסופ"ש האחרון – לחסימה השבוע
+            last_weekend_workers = set()
+            if recent_archive:
+                last_entry = recent_archive[0]
+                for row in last_entry.get("schedule", []):
+                    name = row["שם"]
+                    fri_shift = row.get("שישי", "—")
+                    sat_shift = row.get("שבת", "—")
+                    if fri_shift in ("ערב", "לילה") or sat_shift in ("בוקר", "ערב"):
+                        last_weekend_workers.add(name)
+            history_map["__last_weekend__"] = last_weekend_workers
 
             # זיהוי סוג השבוע (A או B) לפי הסידור האחרון בארכיון
             week_type = "A"
