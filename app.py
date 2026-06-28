@@ -1279,6 +1279,73 @@ with tab2:
                         html += f"<div style='display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f5;'><span style='font-weight:600;color:#3d3d5c;'>{medal} {name}</span><span style='background:{color};color:white;padding:2px 10px;border-radius:12px;font-weight:700;font-size:12px;'>{value}</span></div>"
                 html += "</div>"
                 st.markdown(html, unsafe_allow_html=True)
+# ── טבלת 3 סופי שבוע אחרונים ──
+        st.divider()
+        st.markdown("""
+        <h2 style='text-align:center;background:linear-gradient(135deg,#f5576c,#f093fb);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   background-clip:text;font-weight:800;'>📅 3 סופי שבוע אחרונים</h2>
+        """, unsafe_allow_html=True)
+
+        weekend_shifts = [
+            ("שישי", "ערב",  "🌤 שישי ערב",  "#f59e0b"),
+            ("שישי", "לילה", "🌙 שישי לילה", "#8b5cf6"),
+            ("שבת",  "בוקר", "☀️ שבת בוקר",  "#10b981"),
+            ("שבת",  "ערב",  "🌤 שבת ערב",   "#f59e0b"),
+            ("שבת",  "לילה", "🌙 שבת לילה",  "#8b5cf6"),
+        ]
+
+        last_3 = load_archive()[:3]
+        if not last_3:
+            st.info("אין סידורים שמורים בארכיון.")
+        else:
+            # בניית HTML של הטבלה
+            table_html = """
+            <table style='width:100%;border-collapse:separate;border-spacing:6px;margin-top:15px;'>
+                <thead><tr>
+                    <th style='background:linear-gradient(180deg,#ffffff 0%,#e8e4f8 100%);
+                               color:#3d3d5c;padding:12px;border-radius:10px;
+                               font-weight:800;text-align:center;'>משמרת</th>
+            """
+            for entry in last_3:
+                table_html += f"""
+                <th style='background:linear-gradient(180deg,#ffffff 0%,#e8e4f8 100%);
+                           color:#3d3d5c;padding:12px;border-radius:10px;
+                           font-weight:800;text-align:center;'>{entry['week']}</th>
+                """
+            table_html += "</tr></thead><tbody>"
+
+            for day, shift, label, color in weekend_shifts:
+                table_html += f"""
+                <tr>
+                    <td style='background:linear-gradient(135deg,{color}22,{color}44);
+                               color:#3d3d5c;padding:14px;border-radius:10px;
+                               font-weight:800;text-align:center;border-right:5px solid {color};'>
+                        {label}
+                    </td>
+                """
+                for entry in last_3:
+                    workers = []
+                    for row in entry.get("schedule", []):
+                        if row.get(day) == shift:
+                            workers.append(row["שם"])
+                    workers_str = ", ".join(workers) if workers else "—"
+                    table_html += f"""
+                    <td style='background:white;padding:14px;border-radius:10px;
+                               text-align:center;font-weight:600;color:#3d3d5c;
+                               box-shadow:0 2px 8px rgba(0,0,0,0.05);'>
+                        {workers_str}
+                    </td>
+                    """
+                table_html += "</tr>"
+            table_html += "</tbody></table>"
+
+            components.html(f"""
+            <html><head><style>
+                @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap');
+                body {{ font-family:'Heebo',sans-serif; direction:rtl; margin:0; padding:10px; background:#f8f9fc; }}
+            </style></head><body>{table_html}</body></html>
+            """, height=500, scrolling=True)
 
 with tab3:
     st.markdown("""
