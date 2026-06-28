@@ -85,6 +85,8 @@ FORBIDDEN_DEFAULT = {
 
 NIGHT_LOVERS = {"לב", "איתי", "גיא", "אלינור"}
 DIVERSE_AGENTS = {"שני", "רונית", "לירון"}
+# רוטציה של שבת לילה (משמרת ששווה הרבה כסף)
+SAT_NIGHT_ROTATION = {"גיא", "איתי", "לב", "אלינור", "שני", "לירון", "שרית"}
 # מכסות לילה מתחלפות בין שבועות
 # מכסות מתחלפות בין שבועות
 LEV_ELINOR_PATTERN = {
@@ -256,6 +258,13 @@ def generate_schedule(
             # זיהוי נציגים שעבדו סופ"ש קודם (לפי היסטוריה)
             worked_last_weekend = 0
             past = history.get(n, {})
+            # רוטציה של שבת לילה
+            sat_night_bonus = 0
+            if day == "שבת" and shift == "לילה" and n in SAT_NIGHT_ROTATION:
+                # חישוב כמה זמן עבר מאז שעבד שבת לילה לאחרונה
+                sat_night_history = history.get(n, {}).get("__sat_night_last__", 999)
+                # מי שעבד הכי מזמן → עדיפות גבוהה (sat_night_bonus נמוך)
+                sat_night_bonus = -sat_night_history
             # אם הנציג עבד הרבה משמרות סופ"ש בעבר → עדיפות נמוכה השבוע
             past_weekend_total = past.get("ערב", 0) + past.get("לילה", 0)
             if past_weekend_total >= 2 and day in ("שישי", "שבת"):
@@ -274,7 +283,7 @@ def generate_schedule(
                 if day == "שבת" and shift == "ערב" and schedule[n]["שישי"] == "לילה":
                     weekend_bonus = -3
 
-            return (base, worked_last_weekend, weekend_bonus, repeat, pref_s, div, assigned_count[n])
+            return (base, sat_night_bonus, worked_last_weekend, weekend_bonus, repeat, pref_s, div, assigned_count[n])
 
         ordered = sorted(names, key=sort_key)
         check   = can_assign_relaxed if use_relaxed else can_assign
