@@ -353,6 +353,8 @@ with tab1:
                     if row["שם"] == "לב":
                         lev_nights = sum(1 for d in DAYS_ORDER if row.get(d) == "לילה")
                         break
+                # אם בסידור הקודם לב=5 → השבוע הזה A (לב=4, רונית=4)
+                # אם בסידור הקודם לב=4 → השבוע הזה B (לב=5, רונית=3)
                 week_type = "A" if lev_nights >= 5 else "B"
 
             with st.spinner("מחשב סידור..."):
