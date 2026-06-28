@@ -332,6 +332,20 @@ with tab1:
                         s = row.get(d, "—")
                         if s in history_map[name]:
                             history_map[name][s] += 1
+                            # היסטוריה של שבת לילה – מתי כל נציג עבד לאחרונה (כמה שבועות אחורה)
+            all_archive_full = load_archive()
+            for name in {row["שם"] for entry in all_archive_full for row in entry.get("schedule", [])}:
+                if name not in history_map:
+                    history_map[name] = {"בוקר": 0, "ערב": 0, "לילה": 0}
+                weeks_ago = 999
+                for idx, entry in enumerate(all_archive_full):
+                    for row in entry.get("schedule", []):
+                        if row["שם"] == name and row.get("שבת") == "לילה":
+                            weeks_ago = idx
+                            break
+                    if weeks_ago != 999:
+                        break
+                history_map[name]["__sat_night_last__"] = weeks_ago
                             # זיהוי נציגים שעבדו בסופ"ש האחרון – לחסימה השבוע
             last_weekend_workers = set()
             if recent_archive:
