@@ -498,37 +498,6 @@ with tab1:
             for i, day in enumerate(DAYS_ORDER)
         )
         rows_html   = ""
-        # שורת אירועים מיוחדים
-        has_events = any(
-            any(e["day"] == day for e in st.session_state.events)
-            for day in DAYS_ORDER
-        )
-        if has_events:
-            rows_html += "<tr>"
-            for day in DAYS_ORDER:
-                day_events = [e for e in st.session_state.events if e["day"] == day]
-                if day_events:
-                    event_html = ""
-                    for ev in day_events:
-                        participants_str = ", ".join(ev.get("participants", []))
-                        event_html += (
-                            f"<div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);"
-                            f"border-right:3px solid #d4537e;padding:6px;"
-                            f"border-radius:8px;margin-bottom:2px;"
-                            f"box-shadow:0 2px 8px rgba(212,83,126,0.15);"
-                            f"width:100%;max-width:110px;box-sizing:border-box;'>"
-                            f"<div style='font-weight:700;color:#993556;font-size:11px;margin-bottom:3px;line-height:1.2;'>"
-                            f"{ev.get('emoji','📌')} {ev['title']}</div>"
-                            f"<div style='color:#993556;font-size:9px;margin-bottom:2px;line-height:1.2;'>⏰ {ev['hours']}</div>"
-                            f"<div style='color:#993556;font-size:9px;margin-bottom:3px;line-height:1.2;'>📍 {ev['location']}</div>"
-                            f"<div style='color:#993556;font-size:9px;font-weight:500;line-height:1.3;word-wrap:break-word;'>"
-                            f"<b>משתתפים:</b><br>{participants_str}</div>"
-                            f"</div>"
-                        )
-                    rows_html += f"<td style='padding:0;background:transparent;box-shadow:none;vertical-align:top;width:110px;max-width:110px;'>{event_html}</td>"
-                else:
-                    rows_html += "<td style='background:transparent;box-shadow:none;'></td>"
-            rows_html += "</tr>"
 
         for shift in SHIFTS:
             sc    = SHIFT_CLASS[shift]
@@ -631,8 +600,31 @@ with tab1:
         </table>
         </body></html>
         """
+        # ── באנר אירועים מתחת לטבלה ──
+        events_banner_html = ""
+        for ev in st.session_state.events:
+            participants_str = ", ".join(ev.get("participants", []))
+            events_banner_html += f"""
+            <div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);
+                        border-right:5px solid #d4537e;padding:14px 16px;
+                        border-radius:12px;margin:10px 0;
+                        box-shadow:0 4px 12px rgba(212,83,126,0.15);
+                        max-width:400px;display:inline-block;'>
+                <div style='display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;'>
+                    <span style='font-size:20px;'>{ev.get('emoji','📌')}</span>
+                    <span style='font-weight:700;color:#993556;font-size:15px;'>{ev['title']}</span>
+                    <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📅 יום {ev['day']}</span>
+                    <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>⏰ {ev['hours']}</span>
+                    <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📍 {ev['location']}</span>
+                </div>
+                <div style='color:#993556;font-size:13px;font-weight:500;'>
+                    משתתפים: {participants_str}
+                </div>
+            </div>
+            """
         components.html(full_html, height=750, scrolling=True)
-
+        if events_banner_html:
+            st.markdown(events_banner_html, unsafe_allow_html=True)
         # ── לוח עריכה ──
         st.markdown("---")
         edited_data = {row["שם"]: dict(row) for _, row in df.iterrows()}
@@ -818,43 +810,6 @@ with tab1:
         )
         rows_html   = ""
 
-        # שורת אירועים מיוחדים
-        has_events = any(
-            any(e["day"] == day for e in st.session_state.events)
-            for day in DAYS_ORDER
-        )
-        if has_events:
-            rows_html += "<tr>"
-            for day in DAYS_ORDER:
-                day_events = [e for e in st.session_state.events if e["day"] == day]
-                if day_events:
-                    event_html = ""
-                    for ev in day_events:
-                        participants_str = ", ".join(ev.get("participants", []))
-                        event_html += (
-                            f"<div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);"
-                            f"border-right:5px solid #d4537e;padding:10px 12px;"
-                            f"border-radius:10px;margin-bottom:4px;"
-                            f"box-shadow:0 4px 12px rgba(212,83,126,0.15);'>"
-                            f"<div style='display:flex;align-items:center;gap:6px;"
-                            f"margin-bottom:4px;flex-wrap:wrap;'>"
-                            f"<span style='font-size:16px;'>{ev.get('emoji','📌')}</span>"
-                            f"<span style='font-weight:700;color:#993556;font-size:13px;'>{ev['title']}</span>"
-                            f"<span style='background:white;color:#993556;padding:1px 8px;"
-                            f"border-radius:10px;font-size:10px;font-weight:600;'>"
-                            f"⏰ {ev['hours']}</span>"
-                            f"<span style='background:white;color:#993556;padding:1px 8px;"
-                            f"border-radius:10px;font-size:10px;font-weight:600;'>"
-                            f"📍 {ev['location']}</span>"
-                            f"</div>"
-                            f"<div style='color:#993556;font-size:11px;font-weight:500;'>"
-                            f"משתתפים: {participants_str}</div>"
-                            f"</div>"
-                        )
-                    rows_html += f"<td style='padding:0;background:transparent;box-shadow:none;'>{event_html}</td>"
-                else:
-                    rows_html += "<td style='background:transparent;box-shadow:none;'></td>"
-            rows_html += "</tr>"
 
         for shift in SHIFTS:
             sc    = SHIFT_CLASS[shift]
@@ -959,8 +914,31 @@ with tab1:
         </table>
         </body></html>
         """
+        # ── באנר אירועים מתחת לטבלה ──
+        events_banner_html = ""
+        for ev in st.session_state.events:
+            participants_str = ", ".join(ev.get("participants", []))
+            events_banner_html += f"""
+            <div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);
+                        border-right:5px solid #d4537e;padding:14px 16px;
+                        border-radius:12px;margin:10px 0;
+                        box-shadow:0 4px 12px rgba(212,83,126,0.15);
+                        max-width:400px;display:inline-block;'>
+                <div style='display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;'>
+                    <span style='font-size:20px;'>{ev.get('emoji','📌')}</span>
+                    <span style='font-weight:700;color:#993556;font-size:15px;'>{ev['title']}</span>
+                    <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📅 יום {ev['day']}</span>
+                    <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>⏰ {ev['hours']}</span>
+                    <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📍 {ev['location']}</span>
+                </div>
+                <div style='color:#993556;font-size:13px;font-weight:500;'>
+                    משתתפים: {participants_str}
+                </div>
+            </div>
+            """
         components.html(full_html, height=750, scrolling=True)
-
+        if events_banner_html:
+            st.markdown(events_banner_html, unsafe_allow_html=True)
         # ── גרסת הדפסה ──
         print_html_inner = f"""<!DOCTYPE html>
 <html lang='he' dir='rtl'><head>
