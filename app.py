@@ -164,7 +164,7 @@ defaults = {
     "cell_notes": {}, "watcher": {},
     "events": [],
 }
-    for k, v in defaults.items():
+for k, v in defaults.items():
     # אירוע סדנת שירות 7/7
     if not st.session_state.events:
     st.session_state.events = [
