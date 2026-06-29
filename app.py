@@ -513,18 +513,19 @@ with tab1:
                         participants_str = ", ".join(ev.get("participants", []))
                         event_html += (
                             f"<div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);"
-                            f"border-right:4px solid #d4537e;padding:8px;"
-                            f"border-radius:10px;margin-bottom:4px;"
-                            f"box-shadow:0 4px 12px rgba(212,83,126,0.15);'>"
-                            f"<div style='font-weight:700;color:#993556;font-size:12px;margin-bottom:4px;'>"
+                            f"border-right:3px solid #d4537e;padding:6px;"
+                            f"border-radius:8px;margin-bottom:2px;"
+                            f"box-shadow:0 2px 8px rgba(212,83,126,0.15);"
+                            f"width:100%;max-width:110px;box-sizing:border-box;'>"
+                            f"<div style='font-weight:700;color:#993556;font-size:11px;margin-bottom:3px;line-height:1.2;'>"
                             f"{ev.get('emoji','📌')} {ev['title']}</div>"
-                            f"<div style='color:#993556;font-size:10px;margin-bottom:2px;'>⏰ {ev['hours']}</div>"
-                            f"<div style='color:#993556;font-size:10px;margin-bottom:4px;'>📍 {ev['location']}</div>"
-                            f"<div style='color:#993556;font-size:10px;font-weight:500;line-height:1.3;'>"
+                            f"<div style='color:#993556;font-size:9px;margin-bottom:2px;line-height:1.2;'>⏰ {ev['hours']}</div>"
+                            f"<div style='color:#993556;font-size:9px;margin-bottom:3px;line-height:1.2;'>📍 {ev['location']}</div>"
+                            f"<div style='color:#993556;font-size:9px;font-weight:500;line-height:1.3;word-wrap:break-word;'>"
                             f"<b>משתתפים:</b><br>{participants_str}</div>"
                             f"</div>"
                         )
-                    rows_html += f"<td style='padding:0;background:transparent;box-shadow:none;vertical-align:top;'>{event_html}</td>"
+                    rows_html += f"<td style='padding:0;background:transparent;box-shadow:none;vertical-align:top;width:110px;max-width:110px;'>{event_html}</td>"
                 else:
                     rows_html += "<td style='background:transparent;box-shadow:none;'></td>"
             rows_html += "</tr>"
