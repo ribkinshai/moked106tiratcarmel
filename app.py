@@ -162,8 +162,21 @@ defaults = {
     "fourth_saturday": True, "week_notes": "",
     "week_label": "", "twelve_hour": {},
     "cell_notes": {}, "watcher": {},
+    "events": [],
 }
 for k, v in defaults.items():
+    # אירוע סדנת שירות 7/7
+if not st.session_state.events:
+    st.session_state.events = [
+        {
+            "day": "שלישי",
+            "title": "סדנת שירות",
+            "hours": "09:00-13:00",
+            "location": "בספרייה העירונית",
+            "participants": ["ריקי", "גיא", "לירון", "בר", "טלי"],
+            "emoji": "📚",
+        }
+    ]
     if k not in st.session_state:
         st.session_state[k] = v
 # טעינה אוטומטית בפתיחה
@@ -482,6 +495,49 @@ with tab1:
             for i, day in enumerate(DAYS_ORDER)
         )
         rows_html   = ""
+        # שורת אירועים מיוחדים
+        has_events = any(
+            any(e["day"] == day for e in st.session_state.events)
+            for day in DAYS_ORDER
+        )
+        if has_events:
+            rows_html += "<tr>"
+            for day in DAYS_ORDER:
+                day_events = [e for e in st.session_state.events if e["day"] == day]
+                if day_events:
+                    event_html = ""
+                    for ev in day_events:
+                        participants_str = ", ".join(ev.get("participants", []))
+                        event_html += (
+                            f"<div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);"
+                            f"border-right:5px solid #d4537e;padding:10px 12px;"
+                            f"border-radius:10px;margin-bottom:4px;"
+                            f"box-shadow:0 4px 12px rgba(212,83,126,0.15);'>"
+                            f"<div style='display:flex;align-items:center;gap:6px;"
+                            f"margin-bottom:4px;flex-wrap:wrap;'>"
+                            f"<span style='font-size:16px;'>{ev.get('emoji','📌')}</span>"
+                            f"<span style='font-weight:700;color:#993556;font-size:13px;'>{ev['title']}</span>"
+                            f"<span style='background:white;color:#993556;padding:1px 8px;"
+                            f"border-radius:10px;font-size:10px;font-weight:600;'>"
+                            f"⏰ {ev['hours']}</span>"
+                            f"<span style='background:white;color:#993556;padding:1px 8px;"
+                            f"border-radius:10px;font-size:10px;font-weight:600;'>"
+                            f"📍 {ev['location']}</span>"
+                            f"</div>"
+                            f"<div style='color:#993556;font-size:11px;font-weight:500;'>"
+                            f"משתתפים: {participants_str}</div>"
+                            f"</div>"
+                        )
+                    rows_html += f"<td style='padding:0;background:transparent;box-shadow:none;'>{event_html}</td>"
+                else:
+                    rows_html += "<td style='background:transparent;box-shadow:none;'></td>"
+            rows_html += "</tr>"
+
+        for shift in SHIFTS:
+            sc    = SHIFT_CLASS[shift]
+            emoji = SHIFT_EMOJI[shift]
+            hours = SHIFT_HOURS[shift]
+            rows_html += "<tr>"
         for shift in SHIFTS:
             sc    = SHIFT_CLASS[shift]
             emoji = SHIFT_EMOJI[shift]
@@ -765,6 +821,49 @@ with tab1:
         )
         rows_html   = ""
 
+        # שורת אירועים מיוחדים
+        has_events = any(
+            any(e["day"] == day for e in st.session_state.events)
+            for day in DAYS_ORDER
+        )
+        if has_events:
+            rows_html += "<tr>"
+            for day in DAYS_ORDER:
+                day_events = [e for e in st.session_state.events if e["day"] == day]
+                if day_events:
+                    event_html = ""
+                    for ev in day_events:
+                        participants_str = ", ".join(ev.get("participants", []))
+                        event_html += (
+                            f"<div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);"
+                            f"border-right:5px solid #d4537e;padding:10px 12px;"
+                            f"border-radius:10px;margin-bottom:4px;"
+                            f"box-shadow:0 4px 12px rgba(212,83,126,0.15);'>"
+                            f"<div style='display:flex;align-items:center;gap:6px;"
+                            f"margin-bottom:4px;flex-wrap:wrap;'>"
+                            f"<span style='font-size:16px;'>{ev.get('emoji','📌')}</span>"
+                            f"<span style='font-weight:700;color:#993556;font-size:13px;'>{ev['title']}</span>"
+                            f"<span style='background:white;color:#993556;padding:1px 8px;"
+                            f"border-radius:10px;font-size:10px;font-weight:600;'>"
+                            f"⏰ {ev['hours']}</span>"
+                            f"<span style='background:white;color:#993556;padding:1px 8px;"
+                            f"border-radius:10px;font-size:10px;font-weight:600;'>"
+                            f"📍 {ev['location']}</span>"
+                            f"</div>"
+                            f"<div style='color:#993556;font-size:11px;font-weight:500;'>"
+                            f"משתתפים: {participants_str}</div>"
+                            f"</div>"
+                        )
+                    rows_html += f"<td style='padding:0;background:transparent;box-shadow:none;'>{event_html}</td>"
+                else:
+                    rows_html += "<td style='background:transparent;box-shadow:none;'></td>"
+            rows_html += "</tr>"
+
+        for shift in SHIFTS:
+            sc    = SHIFT_CLASS[shift]
+            emoji = SHIFT_EMOJI[shift]
+            hours = SHIFT_HOURS[shift]
+            rows_html += "<tr>"
         for shift in SHIFTS:
             sc    = SHIFT_CLASS[shift]
             emoji = SHIFT_EMOJI[shift]
