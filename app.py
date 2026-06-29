@@ -165,8 +165,11 @@ defaults = {
     "events": [],
 }
 for k, v in defaults.items():
-    # אירוע סדנת שירות 7/7
-    if not st.session_state.events:
+    if k not in st.session_state:
+        st.session_state[k] = v
+
+# אירוע סדנת שירות 7/7
+if not st.session_state.events:
     st.session_state.events = [
         {
             "day": "שלישי",
