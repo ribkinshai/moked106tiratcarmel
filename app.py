@@ -170,17 +170,16 @@ for k, v in defaults.items():
 
 # אירוע סדנת שירות 7/7
 st.session_state.events = [
-        {
-            "day": "שלישי",
-            "title": "סדנת שירות",
-            "hours": "09:00-13:00",
-            "location": "בספרייה העירונית",
-            "participants": ["רונית", "טלי", "גיא", "לירון"],
-            "emoji": "📚",
-        }
-    ]
-    if k not in st.session_state:
-        st.session_state[k] = v
+    {
+        "day": "שלישי",
+        "title": "סדנת שירות",
+        "hours": "09:00-13:00",
+        "location": "בספרייה העירונית",
+        "participants": ["רונית", "טלי", "גיא", "לירון"],
+        "emoji": "📚",
+    }
+]
+
 # טעינה אוטומטית בפתיחה
 if "loaded" not in st.session_state:
     st.session_state.loaded = True
