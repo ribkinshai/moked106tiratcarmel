@@ -169,14 +169,13 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # אירוע סדנת שירות 7/7
-if not st.session_state.events:
-    st.session_state.events = [
+st.session_state.events = [
         {
             "day": "שלישי",
             "title": "סדנת שירות",
             "hours": "09:00-13:00",
             "location": "בספרייה העירונית",
-            "participants": ["ריקי", "גיא", "לירון", "בר", "טלי"],
+            "participants": ["רונית", "טלי", "גיא", "לירון"],
             "emoji": "📚",
         }
     ]
