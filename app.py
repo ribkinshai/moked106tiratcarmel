@@ -447,10 +447,6 @@ with tab1:
                     st.session_state.schedule_df = archive_to_df(entry)
                     st.session_state.week_label = entry["week"]
                     st.session_state.week_notes = entry.get("notes", "")
-                    # ניקוי נתוני עריכה ישנים
-                    st.session_state.twelve_hour = {}
-                    st.session_state.watcher = {}
-                    st.session_state.cell_notes = {}
                     st.success(f"נטען: {chosen} ✅")
                     st.rerun()
     if st.session_state.schedule_df is not None:
