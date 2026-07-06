@@ -281,9 +281,10 @@ with st.sidebar:
 tab1, tab2, tab3, tab4 = st.tabs(["📋 סידור", "📊 סטטיסטיקות", "🔍 השוואת שבועות", "🗂 ארכיון"])
 
 with tab1:
-    next_week = get_next_week_label()
+    # אם יש תווית שבוע מהארכיון - השתמש בה, אחרת חשב את השבוע הבא
+    next_week = st.session_state.week_label if st.session_state.week_label else get_next_week_label()
     st.markdown(f"""
-        <div style='text-align:center; padding:20px 0;'>
+        <div style='text-align:center; padding:10px 0;'>
             <h1 style='margin:0; font-weight:900; font-size:42px; letter-spacing:-1px;'>
                 <span style='background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);
                              -webkit-background-clip:text;-webkit-text-fill-color:transparent;
