@@ -191,7 +191,32 @@ def get_next_week_label():
     next_saturday = next_sunday + timedelta(days=6)
     return f"{next_sunday.day}-{next_saturday.day}/{next_saturday.month}"
 
-def get_week_dates():
+def get_week_dates(week_label=None):
+    # אם יש תווית שבוע - חשב לפיה
+    if week_label:
+        try:
+            # פורמט: "5-11/7" או "28/6-4/7" או "12-18/7"
+            import re
+            # ניסוי 1: פורמט "5-11/7" (יום-יום/חודש)
+            match = re.match(r'(\d+)-(\d+)/(\d+)', week_label.strip())
+            if match:
+                start_day = int(match.group(1))
+                month = int(match.group(3))
+                year = datetime.now().year
+                start_date = datetime(year, month, start_day)
+                return [(start_date + timedelta(days=i)) for i in range(7)]
+            # ניסוי 2: פורמט "28/6-4/7"
+            match = re.match(r'(\d+)/(\d+)-(\d+)/(\d+)', week_label.strip())
+            if match:
+                start_day = int(match.group(1))
+                start_month = int(match.group(2))
+                year = datetime.now().year
+                start_date = datetime(year, start_month, start_day)
+                return [(start_date + timedelta(days=i)) for i in range(7)]
+        except Exception:
+            pass
+
+    # ברירת מחדל - השבוע הבא
     today = datetime.now()
     days_until_sunday = (6 - today.weekday()) % 7
     if days_until_sunday == 0:
@@ -484,7 +509,7 @@ with tab1:
         df = st.session_state.schedule_df
 
         # הצג טבלה כרגיל
-        week_dates = get_week_dates()
+        week_dates = get_week_dates(st.session_state.week_label)
         header_html = "".join(
             f"<th>{day}<br><span style='font-size:11px;font-weight:400;opacity:0.7'>"
             f"{week_dates[i].day}/{week_dates[i].month}</span></th>"
@@ -795,7 +820,7 @@ with tab1:
         df     = st.session_state.schedule_df
         twelve = st.session_state.twelve_hour
 
-        week_dates = get_week_dates()
+        week_dates = get_week_dates(st.session_state.week_label)
         header_html = "".join(
             f"<th>{day}<br><span style='font-size:11px;font-weight:400;opacity:0.7'>"
             f"{week_dates[i].day}/{week_dates[i].month}</span></th>"
