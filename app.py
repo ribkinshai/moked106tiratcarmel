@@ -197,8 +197,10 @@ def get_week_dates(week_label=None):
         try:
             # פורמט: "5-11/7" או "28/6-4/7" או "12-18/7"
             import re
-            # ניסוי 1: פורמט "5-11/7" (יום-יום/חודש)
-            match = re.match(r'(\d+)-(\d+)/(\d+)', week_label.strip())
+            # ניסוי 1: פורמט "5-11/7" או "5\11-7" (יום-יום/חודש)
+            # נורמליזציה - הסרת \ והחלפה ב-/
+            normalized = week_label.strip().replace('\\', '/')
+            match = re.match(r'(\d+)-(\d+)/(\d+)', normalized)
             if match:
                 start_day = int(match.group(1))
                 month = int(match.group(3))
