@@ -1041,7 +1041,7 @@ td span span {{
 <button class='print-btn' onclick='window.print()'>🖨️ הדפס</button>
 <div class='header'>
     <h1>📋 מוקד 106 - סידור עבודה שבועי</h1>
-    <h2>📅 {next_week}</h2>
+    <h2>📅 <bdi>{next_week}</bdi></h2>
 </div>
 <table>
 <thead><tr>{header_html}</tr></thead>
