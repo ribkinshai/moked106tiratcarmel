@@ -1238,7 +1238,8 @@ td span span {{
             st.markdown(profile_html, unsafe_allow_html=True)
         st.divider()
         st.markdown("### 👤 סטטוס מכסה")
-        scols = st.columns(len(st.session_state.agents))
+        active_agents = [a for a in st.session_state.agents if a.get("status","פעיל") == "פעיל"]
+        scols = st.columns(max(1, len(active_agents)))
         for i, (_, row) in enumerate(df.iterrows()):
             ag_obj   = next((a for a in st.session_state.agents if a["name"]==row["שם"]), {})
             ag_total = ag_obj.get("total", 0)
