@@ -467,7 +467,7 @@ with tab1:
                 if count < required:
                     alerts.append(f"⚠️ {day} – {shift}: {count}/{required} נציגים")
         # התראות על משמרות חוזרות
-        exempt_agents = {"גיא", "לב", "סימה", "אלינור", "איתי", "שרית", "ריקי", "אדיר"}
+        exempt_agents = {"גיא", "לב", "סימה", "אלינור", "איתי", "שרית", "ריקי"}
         recent_archive = load_archive()[:3]
         history_map = {}
         for entry in recent_archive:
