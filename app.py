@@ -1240,20 +1240,25 @@ td span span {{
         st.markdown("### 👤 סטטוס מכסה")
         active_agents = [a for a in st.session_state.agents if a.get("status","פעיל") == "פעיל"]
         scols = st.columns(max(1, len(active_agents)))
-        for i, (_, row) in enumerate(df.iterrows()):
-            ag_obj   = next((a for a in st.session_state.agents if a["name"]==row["שם"]), {})
+        idx = 0
+        for _, row in df.iterrows():
+            ag_obj = next((a for a in st.session_state.agents if a["name"]==row["שם"]), None)
+            if ag_obj is None:
+                continue
             ag_total = ag_obj.get("total", 0)
             filled   = row.get("סה״כ", 0)
             color    = "#2d6a2d" if filled >= ag_total else "#cc4444"
             ag_color = ag_obj.get("color", "#eee")
-            with scols[i]:
+            if idx >= len(scols):
+                break
+            with scols[idx]:
                 st.markdown(f"""
                 <div style='background:{ag_color};border-radius:10px;padding:8px;text-align:center;'>
                     <div style='font-size:11px;font-weight:700;color:#3d3d5c;'>{row['שם']}</div>
                     <div style='font-size:18px;font-weight:700;color:{color};'>{filled}/{ag_total}</div>
                 </div>
                 """, unsafe_allow_html=True)
-
+            idx += 1
         st.divider()
         output = df.to_csv(index=False).encode("utf-8-sig")
         st.download_button("📥 הורד סידור כ-CSV", data=output,
