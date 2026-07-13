@@ -1048,23 +1048,22 @@ td span span {{
 </table>
 
 <div style="margin-top:20px;text-align:center;">
-{"".join([
-    f'''<div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);
+    <div style='background:linear-gradient(135deg,#fce4ec 0%,#f8d7e0 100%);
                 border-right:5px solid #d4537e;padding:14px 16px;
                 border-radius:12px;margin:10px auto;
                 box-shadow:0 4px 12px rgba(212,83,126,0.15);
                 max-width:500px;display:block;'>
         <div style='display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;justify-content:center;'>
-            <span style='font-size:20px;'>{ev.get("emoji","📌")}</span>
-            <span style='font-weight:700;color:#993556;font-size:15px;'>{ev["title"]}</span>
-            <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📅 יום {ev["day"]}</span>
-            <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>⏰ {ev["hours"]}</span>
-            <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📍 {ev["location"]}</span>
+            <span style='font-size:20px;'>📚</span>
+            <span style='font-weight:700;color:#993556;font-size:15px;'>סדנת שירות</span>
+            <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📅 21/7</span>
+            <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📍 קליקה</span>
         </div>
         <div style='color:#993556;font-size:13px;font-weight:500;'>
-            משתתפים: {", ".join(ev.get("participants", []))}
+            משתתפים: ריקי, לב, שני, סימה
         </div>
-    </div>'''
+    </div>
+</div>'''
     for ev in st.session_state.events
 ])}
 </div>
