@@ -1063,9 +1063,6 @@ td span span {{
             משתתפים: ריקי, לב, שני, סימה
         </div>
     </div>
-</div>'''
-    for ev in st.session_state.events
-])}
 </div>
 
 </body></html>"""
