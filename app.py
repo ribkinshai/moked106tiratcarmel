@@ -1060,7 +1060,7 @@ td span span {{
             <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📍 קליקה</span>
         </div>
         <div style='color:#993556;font-size:13px;font-weight:500;'>
-            משתתפים: ריקי, לב, שני, סימה
+            משתתפים: ריקי, לב, אלינור, סימה
         </div>
     </div>
 </div>
