@@ -1058,7 +1058,7 @@ td span span {{
             <span style='font-weight:700;color:#993556;font-size:15px;'>סדנת שירות</span>
             <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📅 4/8</span>
             <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>⏰ 09:00-13:00</span>
-            <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📍 בספרייה העירונית</span>
+            <span style='background:white;color:#993556;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;'>📍 בקליקה</span>
         </div>
         <div style='color:#993556;font-size:13px;font-weight:500;'>
             משתתפים: שרית, שני, סימה
