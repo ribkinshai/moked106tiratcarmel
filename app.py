@@ -637,6 +637,216 @@ with tab1:
                 </div>
             </div>
             """
+        # ── מצב גרירה ──
+        if st.checkbox("🎯 הפעל מצב גרירה", key="drag_mode"):
+            st.info("💡 גרור שם של נציג מתא אחד לאחר. אם התא היעד ריק - הנציג יעבור. אם יש שם נציג, הם יתחלפו.")
+
+            # בניית מבנה נתונים לגרירה
+            schedule_data = {}
+            for day in DAYS_ORDER:
+                for shift in SHIFTS:
+                    key = f"{day}_{shift}"
+                    schedule_data[key] = df[df[day] == shift]["שם"].tolist()
+
+            import json
+            schedule_json = json.dumps(schedule_data, ensure_ascii=False)
+            days_json = json.dumps(DAYS_ORDER, ensure_ascii=False)
+            shifts_json = json.dumps(SHIFTS, ensure_ascii=False)
+            colors_json = json.dumps(AGENT_COLORS, ensure_ascii=False)
+
+            drag_html = f"""
+            <!DOCTYPE html>
+            <html lang="he" dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap');
+                    body {{ font-family:'Heebo',sans-serif; direction:rtl; margin:0; padding:20px;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }}
+                    table {{ width:100%; border-collapse:separate; border-spacing:6px; }}
+                    th {{ background: linear-gradient(180deg, #ffffff 0%, #e8e4f8 100%);
+                          color:#3d3d5c; padding:14px; border-radius:12px;
+                          font-weight:800; text-align:center; font-size:13px;
+                          box-shadow: 0 4px 12px rgba(0,0,0,0.15); }}
+                    td {{ padding:12px; border-radius:12px; vertical-align:top;
+                          min-width:110px; text-align:center; min-height:120px;
+                          box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
+                    .cell-morning {{ background: linear-gradient(180deg, #b8f2c1 0%, #6ee7b7 100%); }}
+                    .cell-noon    {{ background: linear-gradient(180deg, #fde68a 0%, #f59e0b 100%); }}
+                    .cell-night   {{ background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 100%); }}
+                    .cell-morning b {{ color:#064e3b; }}
+                    .cell-noon b    {{ color:#78350f; }}
+                    .cell-night b   {{ color:#2e1065; }}
+                    .cell-hours {{ font-size:11px; opacity:0.7; margin-bottom:8px; display:block; }}
+                    .agent {{ background: linear-gradient(180deg, white, #f5f5fa);
+                              color:#3d3d5c; padding:6px 12px; border-radius:10px;
+                              margin:4px 2px; display:inline-block; font-weight:700;
+                              font-size:13px; cursor:grab; user-select:none;
+                              box-shadow: 0 2px 6px rgba(0,0,0,0.15); }}
+                    .agent:hover {{ box-shadow: 0 4px 12px rgba(0,0,0,0.25); transform:translateY(-1px); }}
+                    .agent.dragging {{ opacity:0.5; }}
+                    .cell-target {{ box-shadow: 0 0 0 3px #ffd700, 0 4px 12px rgba(0,0,0,0.1); }}
+                    .drop-zone {{ min-height:60px; padding:8px; border-radius:8px;
+                                  border: 2px dashed transparent; transition:all 0.2s; }}
+                    .drop-zone.drop-hover {{ border-color:#ffd700; background:rgba(255,215,0,0.15); }}
+                    #apply-btn {{ background:#7c6fc4; color:white; border:none;
+                                  padding:14px 40px; font-size:16px; border-radius:12px;
+                                  cursor:pointer; font-family:'Heebo',sans-serif;
+                                  font-weight:700; margin-top:20px; display:block;
+                                  margin-left:auto; margin-right:auto;
+                                  box-shadow: 0 4px 15px rgba(0,0,0,0.2); }}
+                    #apply-btn:hover {{ background:#5c4fa4; }}
+                    #export-area {{ display:none; }}
+                </style>
+            </head>
+            <body>
+                <table>
+                    <thead>
+                        <tr id="header-row"></tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+                <textarea id="export-area"></textarea>
+                <button id="apply-btn" onclick="applyChanges()">💾 העתק נתונים ולחץ שמור</button>
+
+                <script>
+                    const DAYS = {days_json};
+                    const SHIFTS = {shifts_json};
+                    const COLORS = {colors_json};
+                    const SHIFT_HOURS = {{"בוקר": "07:00-15:00", "ערב": "15:00-23:00", "לילה": "23:00-07:00"}};
+                    const SHIFT_CLASS = {{"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}};
+                    const SHIFT_EMOJI = {{"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}};
+                    let schedule = {schedule_json};
+
+                    function render() {{
+                        const headerRow = document.getElementById('header-row');
+                        headerRow.innerHTML = DAYS.map(d => `<th>${{d}}</th>`).join('');
+
+                        const tbody = document.getElementById('table-body');
+                        tbody.innerHTML = SHIFTS.map(shift => {{
+                            return '<tr>' + DAYS.map(day => {{
+                                const key = day + '_' + shift;
+                                const agents = schedule[key] || [];
+                                const cls = SHIFT_CLASS[shift];
+                                const emoji = SHIFT_EMOJI[shift];
+                                const hours = SHIFT_HOURS[shift];
+                                const agentsHtml = agents.map(name => {{
+                                    const color = COLORS[name] || '#eee';
+                                    return `<span class="agent" draggable="true" data-name="${{name}}" data-source="${{key}}" style="background:linear-gradient(180deg,${{color}}44,${{color}}88)">${{name}}</span>`;
+                                }}).join('');
+                                return `<td class="${{cls}}">
+                                    <b>${{emoji}} ${{shift}}</b>
+                                    <span class="cell-hours">${{hours}}</span>
+                                    <div class="drop-zone" data-target="${{key}}">${{agentsHtml}}</div>
+                                </td>`;
+                            }}).join('') + '</tr>';
+                        }}).join('');
+
+                        attachListeners();
+                    }}
+
+                    function attachListeners() {{
+                        document.querySelectorAll('.agent').forEach(el => {{
+                            el.addEventListener('dragstart', e => {{
+                                e.dataTransfer.setData('name', el.dataset.name);
+                                e.dataTransfer.setData('source', el.dataset.source);
+                                el.classList.add('dragging');
+                            }});
+                            el.addEventListener('dragend', e => {{
+                                el.classList.remove('dragging');
+                            }});
+                        }});
+
+                        document.querySelectorAll('.drop-zone').forEach(zone => {{
+                            zone.addEventListener('dragover', e => {{
+                                e.preventDefault();
+                                zone.classList.add('drop-hover');
+                            }});
+                            zone.addEventListener('dragleave', e => {{
+                                zone.classList.remove('drop-hover');
+                            }});
+                            zone.addEventListener('drop', e => {{
+                                e.preventDefault();
+                                zone.classList.remove('drop-hover');
+                                const draggedName = e.dataTransfer.getData('name');
+                                const source = e.dataTransfer.getData('source');
+                                const target = zone.dataset.target;
+
+                                if (source === target) return;
+
+                                // הסר מהמקור
+                                schedule[source] = schedule[source].filter(n => n !== draggedName);
+
+                                // בדוק אם היעד מלא (יש בו מישהו כבר, ורוצים להחליף)
+                                if (schedule[target] && schedule[target].length > 0) {{
+                                    // החלפה - הראשון במקום היעד עובר למקור
+                                    const replaced = schedule[target][0];
+                                    schedule[target][0] = draggedName;
+                                    schedule[source].push(replaced);
+                                }} else {{
+                                    schedule[target] = schedule[target] || [];
+                                    schedule[target].push(draggedName);
+                                }}
+
+                                render();
+                            }});
+                        }});
+                    }}
+
+                    function applyChanges() {{
+                        const exportArea = document.getElementById('export-area');
+                        exportArea.style.display = 'block';
+                        exportArea.value = JSON.stringify(schedule);
+                        exportArea.select();
+                        document.execCommand('copy');
+                        alert('✅ הנתונים הועתקו! עכשיו הדבק אותם בשדה למטה ולחץ "החל שינויים"');
+                    }}
+
+                    render();
+                </script>
+            </body>
+            </html>
+            """
+
+            components.html(drag_html, height=850, scrolling=True)
+
+            # שדה להדבקת ה-JSON והחלה
+            st.markdown("### 📋 הדבק את הנתונים כאן:")
+            pasted = st.text_area("JSON", value="", key="drag_paste", label_visibility="collapsed")
+
+            if st.button("💾 החל שינויים מהגרירה", type="primary", key="apply_drag"):
+                try:
+                    new_schedule = json.loads(pasted)
+                    # בנייה מחדש של DataFrame
+                    all_agents = df["שם"].tolist()
+                    new_rows = []
+                    for ag in all_agents:
+                        row = {"שם": ag}
+                        for day in DAYS_ORDER:
+                            row[day] = "—"
+                        for key, agents_list in new_schedule.items():
+                            day, shift = key.split("_")
+                            for a in agents_list:
+                                if a == ag:
+                                    row[day] = shift
+                        row["סה״כ"] = sum(1 for d in DAYS_ORDER if row[d] != "—")
+                        new_rows.append(row)
+
+                    st.session_state.schedule_df = pd.DataFrame(new_rows)
+                    save_current(
+                        st.session_state.schedule_df,
+                        st.session_state.twelve_hour,
+                        st.session_state.watcher,
+                        st.session_state.cell_notes,
+                        st.session_state.week_label,
+                        st.session_state.week_notes,
+                    )
+                    st.success("✅ השינויים הוחלו ונשמרו!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"שגיאה: {e}")
+
+            st.divider()
         components.html(full_html, height=750, scrolling=True)
         if events_banner_html:
             st.markdown(events_banner_html, unsafe_allow_html=True)
