@@ -707,6 +707,15 @@ with tab1:
                     <tbody id="table-body"></tbody>
                 </table>
                 <textarea id="export-area"></textarea>
+                <button id="undo-btn" onclick="undoChange()" style="background:#f59e0b;color:white;border:none;padding:12px 30px;font-size:14px;border-radius:10px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:700;margin:10px 5px;box-shadow: 0 4px 12px rgba(0,0,0,0.2);">↩️ בטל פעולה אחרונה</button>
+                function undoChange() {{
+                        if (history.length === 0) {{
+                            alert('אין פעולות לבטל');
+                            return;
+                        }}
+                        schedule = history.pop();
+                        render();
+                    }}
                 <button id="apply-btn" onclick="applyChanges()">💾 העתק נתונים ולחץ שמור</button>
 
                 <script>
@@ -717,6 +726,7 @@ with tab1:
                     const SHIFT_CLASS = {{"בוקר": "cell-morning", "ערב": "cell-noon", "לילה": "cell-night"}};
                     const SHIFT_EMOJI = {{"בוקר": "☀️", "ערב": "🌤", "לילה": "🌙"}};
                     let schedule = {schedule_json};
+                    let history = [];
 
                     function render() {{
                         const headerRow = document.getElementById('header-row');
@@ -773,6 +783,10 @@ with tab1:
                                 const target = zone.dataset.target;
 
                                 if (source === target) return;
+
+                                // שמור מצב לפני שינוי (להיסטוריה)
+                                history.push(JSON.parse(JSON.stringify(schedule)));
+                                if (history.length > 20) history.shift();
 
                                 // הסר מהמקור
                                 schedule[source] = schedule[source].filter(n => n !== draggedName);
