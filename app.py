@@ -708,11 +708,7 @@ with tab1:
                 </table>
                 <textarea id="export-area"></textarea>
                 <button id="undo-btn" onclick="undoChange()" style="background:#f59e0b;color:white;border:none;padding:12px 30px;font-size:14px;border-radius:10px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:700;margin:10px 5px;box-shadow: 0 4px 12px rgba(0,0,0,0.2);">↩️ בטל פעולה אחרונה</button>
-                function undoChange() {{
-                        if (history.length === 0) {{
-                            alert('אין פעולות לבטל');
-                            return;
-                        }}
+                
                         schedule = history.pop();
                         render();
                     }}
@@ -810,7 +806,14 @@ with tab1:
                             }});
                         }});
                     }}
-
+function undoChange() {{
+                        if (history.length === 0) {{
+                            alert('אין פעולות לבטל');
+                            return;
+                        }}
+                        schedule = history.pop();
+                        render();
+                    }}
                     function applyChanges() {{
                         const exportArea = document.getElementById('export-area');
                         exportArea.style.display = 'block';
