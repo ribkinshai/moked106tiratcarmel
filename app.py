@@ -777,13 +777,17 @@ with tab1:
                                 // הסר מהמקור
                                 schedule[source] = schedule[source].filter(n => n !== draggedName);
 
-                                // בדוק אם היעד מלא (יש בו מישהו כבר, ורוצים להחליף)
-                                if (schedule[target] && schedule[target].length > 0) {{
-                                    // החלפה - הראשון במקום היעד עובר למקור
-                                    const replaced = schedule[target][0];
-                                    schedule[target][0] = draggedName;
-                                    schedule[source].push(replaced);
+                                // גרירה למקום ריק או החלפה עם נציג ספציפי
+                                if (e.target.classList.contains('agent')) {{
+                                    // הונח על נציג ספציפי - החלפה 1:1
+                                    const replacedName = e.target.dataset.name;
+                                    const targetIdx = schedule[target].indexOf(replacedName);
+                                    if (targetIdx !== -1) {{
+                                        schedule[target][targetIdx] = draggedName;
+                                        // הנציג המוחלף פשוט יורד לגמרי - חור במקור
+                                    }}
                                 }} else {{
+                                    // הונח על תא ריק - פשוט הוספה
                                     schedule[target] = schedule[target] || [];
                                     schedule[target].push(draggedName);
                                 }}
