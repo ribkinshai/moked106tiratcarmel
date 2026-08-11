@@ -154,6 +154,7 @@ if "agents" not in st.session_state:
         {"name": "טלי",   "total": 4, "pref": "ללא העדפה","status": "פעיל", "day_off": [], "color": AGENT_COLORS.get("טלי","#ccc")},
         {"name": "סימה",  "total": 2, "pref": "ערב",      "status": "פעיל", "day_off": [], "color": AGENT_COLORS.get("סימה","#ccc")},
         {"name": "לירון", "total": 5, "pref": "פיזור",    "status": "פעיל", "day_off": [], "color": AGENT_COLORS.get("לירון","#ccc")},
+        {"name": "מאי",   "total": 5, "pref": "פיזור",    "status": "פעיל", "day_off": [], "color": AGENT_COLORS.get("מאי","#ccc")},
     ]
 
 defaults = {
